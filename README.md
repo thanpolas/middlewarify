@@ -89,6 +89,32 @@ middlewarify.make(crud, 'create');
 crud.create.use([fn1, fn2], fn3);
 ```
 
+#### Invoking the callbacks
+
+The middleware container is a function that accepts any number of arguments and an optional callback.
+
+Any argument passed to the middleware container will also be passed to all middleware.
+
+```js
+var crud = {};
+middlewarify.make(crud, 'create');
+
+// run all middleware
+crud.create(userDataObject);
+```
+
+The optional callback should always be defined last, it gets invoked when all middleware have finished. It provides one argument, the `err` which if has a truthy value (typically an instance of `Error`) meas that something did not go well.
+
+```js
+var crud = {};
+middlewarify.make(crud, 'create');
+
+// run all middleware
+crud.create(userDataObject, function(err) {
+  if (err) { /* tough love */ }
+});
+```
+
 #### The Middleware Callback
 
 When adding a `middleware` Function (i.e. `crud.create.use(middleware)`) by default it will be invoked with only one argument, the `next` callback. If you add arguments when calling the middleware container `crud.create(arg1, arg2)`, all middleware callbacks will be invoked with these arguments first. The `next` callback will always be last.
