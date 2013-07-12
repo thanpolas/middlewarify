@@ -55,7 +55,6 @@ suite('1. Unit Tests', function() {
       assert.ok(thirdMidd.calledAfter(secondMidd), 'thirdMidd should be called after secondMidd');
       assert.ok(lastMidd.calledAfter(thirdMidd), 'lastMidd should be called after thirdMidd');
 
-
     });
 
     test('1.10.1 Multiple arguments', function() {
@@ -74,5 +73,48 @@ suite('1. Unit Tests', function() {
     });
 
   });
+
+  suite('1.11 middleware() argument piping', function() {
+    var obj, lastMidd, firstMidd, secondMidd, thirdMidd;
+    function callAll(index) {
+      firstMidd.callArg(index);
+      secondMidd.callArg(index);
+      thirdMidd.callArg(index);
+      lastMidd.callArg(index);
+    }
+    setup(function() {
+      obj = Object.create(null);
+      lastMidd = sinon.spy();
+      firstMidd = sinon.spy();
+      secondMidd = sinon.spy();
+      thirdMidd = sinon.spy();
+      midd.make(obj, 'create', lastMidd);
+      obj.create.use(firstMidd, secondMidd, thirdMidd);
+    });
+
+    teardown(function(){
+      assert.ok(firstMidd.calledOnce, 'firstMidd should be called only once');
+      assert.ok(secondMidd.calledOnce, 'secondMidd should be called only once');
+      assert.ok(thirdMidd.calledOnce, 'thirdMidd should be called only once');
+      assert.ok(lastMidd.calledOnce, 'lastMidd should be called only once');
+
+      assert.ok(firstMidd.calledBefore(secondMidd), 'firstMidd should be called before secondMidd');
+      assert.ok(secondMidd.calledAfter(firstMidd), 'secondMidd should be called after firstMidd');
+      assert.ok(thirdMidd.calledAfter(secondMidd), 'thirdMidd should be called after secondMidd');
+      assert.ok(lastMidd.calledAfter(thirdMidd), 'lastMidd should be called after thirdMidd');
+
+    });
+
+    test('1.11.1 Three arguments', function(done) {
+      obj.create(1, 2, 3, function(err){
+        assert.notOk(err, 'error should not be truthy');
+        callAll(3);
+        console.log('args:', firstMidd.args);
+        done();
+      });
+    });
+
+  });
+
 
 });
