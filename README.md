@@ -13,11 +13,91 @@ npm install middlewarify --save
 
 Pretty simple to make a middleware method:
 ```js
+var midd = require('middlewarify');
+
+var tasks = module.exports = {};
+
+// this will be the last callback to be invoked
+tasks._create = function() {
+  console.log('tasks._create');
+};
+
+// Make the 'create' prop a middleware function.
+midd.make(tasks, 'create', tasks._create);
+
+// ... somewhere far far away in another file
+
+var tasks = require('./tasks');
+
+// add a middleware to the 'create' operation
+tasks.create.use(function(done){
+  console.log('middleware 1');
+  done();
+});
+
+// add another middleware to the 'create' operation
+tasks.create.use(function(done){
+  console.log('middleware 2');
+  done();
+});
+
+
+// ... Invoking them all together
+tasks.create(function(err){
+  // all middleware finished.
+});
 
 ```
 
+### Methods
+
+#### make(object, property, optFinalCallback)
+
+The `middlewarify.make()` method will apply the middleware pattern to an Object's property.
+
+```js
+var crud = {};
+middlewarify.make(crud, 'create');
+middlewarify.make(crud, 'read');
+middlewarify.make(crud, 'update');
+middlewarify.make(crud, 'delete');
+```
+
+Each time `make()` is used two new functions are added to the `crud` Object:
+
+* `crud.create([, ...])` This method will invoke all added middleware in the sequence they were defined.
+* `crud.create.use(middleware)` This method will add middleware Functions to the `crud.create` container.
+
+
+#### The use(fn) Method
+
+The middleware container exposes a `use` method to add middleware. `use()` accepts any number of parameters as long they are type Function or Arrays of Functions.
+
+```js
+var crud = {};
+middlewarify.make(crud, 'create');
+
+// add middleware
+crud.create.use([fn1, fn2], fn3);
+```
+
+#### The Middleware Callback
+
+When adding a `middleware` Function (i.e. `crud.create.use(middleware)`) by default it will be invoked with only one argument, the `next` callback. If you add arguments when calling the middleware container `crud.create(arg1, arg2)`, all middleware callbacks will be invoked with these arguments first. The `next` callback will always be last.
+
+> Invoking next() with a truthy argument (i.e. `next(err)`) will stop invoking more middleware. The flow is passed to the `optFinalCallback` if defined in the `make()` method or silently dismissed.
+
+```js
+crud.create.use(function(arg1, arg2, next) {
+  if (arg1 !== arg2) { return next(new Error('not a match'))}
+  next();
+});
+
+crud.create(foo, bar);
+```
+
 ## Release History
-- **v0.0.1**, *12 JuL 2013*
+- **v0.0.1**, *TBD JuL 2013*
   - Big Bang
 
 ## License
