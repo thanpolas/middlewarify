@@ -1,9 +1,5 @@
 /**
- * @fileOverview bootstrap file for crude
+ * @fileOverview bootstrap file for middlewarify
  */
 
-var crude = module.exports = {};
-
-crude.route = require('./route');
-crude.Controller = require('./controller');
-crude.ControllerCrud = require('./controller-crud');
+module.exports = require('./middlewarify');
