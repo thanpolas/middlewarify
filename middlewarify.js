@@ -18,13 +18,13 @@ var noop = function() {};
 middlewarify.make = function(obj, prop, optFinalCb) {
 
   var middObj = Object.create(null);
-  middObj.mids = [];
+  middObj.midds = [];
   if (__.isFunction(optFinalCb)) {
-    middObj.mids.push(optFinalCb);
+    middObj.midds.push(optFinalCb);
   }
 
   obj[prop] = middlewarify._runAll.bind(null, middObj);
-
+  obj[prop].use = middlewarify._use.bind(null, middObj);
 };
 
 /**
@@ -45,7 +45,7 @@ middlewarify._runAll = function(middObj) {
     done = args.pop();
   }
 
-  var midds = Array.prototype.slice.call(middObj.mids, 0);
+  var midds = Array.prototype.slice.call(middObj.midds, 0);
 
   middlewarify.popAndInvoke(midds);
 
@@ -75,4 +75,27 @@ middlewarify._popAndInvoke = function(midds, args, done) {
   } catch(ex) {
     done(ex);
   }
+};
+
+/**
+ * Add middleware.
+ *
+ * @param  {Object} middObj Internal midd object.
+ * @param {Function|Array.<Function>...} Any combination of function containers.
+ * @private
+ */
+middlewarify._use = function(middObj) {
+  var args = Array.prototype.slice.call(arguments, 1);
+
+  args.forEach(function(argItem){
+    if (Array.isArray(argItem)) {
+      argItem.forEach(function(argFn){
+        if (__.isFunction(argFn)) {
+          middObj.push(argFn);
+        }
+      });
+    } else if (__.isFunction(argItem)) {
+      middObj.push(argItem);
+    }
+  });
 };
