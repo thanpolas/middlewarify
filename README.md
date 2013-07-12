@@ -11,7 +11,8 @@ npm install middlewarify --save
 
 ## Documentation
 
-Pretty simple to make a middleware method:
+Apply the middleware pattern:
+
 ```js
 var midd = require('middlewarify');
 
@@ -24,7 +25,11 @@ tasks._create = function() {
 
 // Make the 'create' prop a middleware function.
 midd.make(tasks, 'create', tasks._create);
+```
 
+...Add middleware
+
+```js
 // ... somewhere far far away in another file
 
 var tasks = require('./tasks');
@@ -41,7 +46,11 @@ tasks.create.use(function(done){
   done();
 });
 
+```
 
+... Invoke all the middleware
+
+```js
 // ... Invoking them all together
 tasks.create(function(err){
   // all middleware finished.
