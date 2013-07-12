@@ -49,6 +49,13 @@ suite('1. Unit Tests', function() {
       assert.ok(secondMidd.calledOnce, 'secondMidd should be called only once');
       assert.ok(thirdMidd.calledOnce, 'thirdMidd should be called only once');
       assert.ok(lastMidd.calledOnce, 'lastMidd should be called only once');
+
+      assert.ok(firstMidd.calledBefore(secondMidd), 'firstMidd should be called before secondMidd');
+      assert.ok(secondMidd.calledAfter(firstMidd), 'secondMidd should be called after firstMidd');
+      assert.ok(thirdMidd.calledAfter(secondMidd), 'thirdMidd should be called after secondMidd');
+      assert.ok(lastMidd.calledAfter(thirdMidd), 'lastMidd should be called after thirdMidd');
+
+
     });
 
     test('1.10.1 Multiple arguments', function() {
