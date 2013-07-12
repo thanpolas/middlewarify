@@ -47,7 +47,7 @@ middlewarify._runAll = function(middObj) {
 
   var midds = Array.prototype.slice.call(middObj.midds, 0);
 
-  middlewarify.popAndInvoke(midds);
+  middlewarify._popAndInvoke(midds, args, done);
 
 };
 
@@ -91,11 +91,11 @@ middlewarify._use = function(middObj) {
     if (Array.isArray(argItem)) {
       argItem.forEach(function(argFn){
         if (__.isFunction(argFn)) {
-          middObj.push(argFn);
+          middObj.midds.push(argFn);
         }
       });
     } else if (__.isFunction(argItem)) {
-      middObj.push(argItem);
+      middObj.midds.push(argItem);
     }
   });
 };
