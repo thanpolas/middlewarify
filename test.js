@@ -45,10 +45,10 @@ suite('1. Unit Tests', function() {
       secondMidd.yield();
       thirdMidd.yield();
       lastMidd.yield();
-      assert.true(firstMidd.calledOnce, 'firstMidd should be called only once');
-      assert.true(secondMidd.calledOnce, 'secondMidd should be called only once');
-      assert.true(thirdMidd.calledOnce, 'thirdMidd should be called only once');
-      assert.true(lastMidd.calledOnce, 'lastMidd should be called only once');
+      assert.ok(firstMidd.calledOnce, 'firstMidd should be called only once');
+      assert.ok(secondMidd.calledOnce, 'secondMidd should be called only once');
+      assert.ok(thirdMidd.calledOnce, 'thirdMidd should be called only once');
+      assert.ok(lastMidd.calledOnce, 'lastMidd should be called only once');
     });
 
     test('1.10.1 Multiple arguments', function() {

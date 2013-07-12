@@ -7,6 +7,7 @@ var __ = require('lodash');
 var middlewarify = module.exports = {};
 
 var noop = function() {};
+var noopMidd = function(cb) {if (__.isFunction(cb)) cb();};
 
 /**
  * Apply the middleware pattern to the provided object's propert.
@@ -19,8 +20,9 @@ middlewarify.make = function(obj, prop, optFinalCb) {
 
   var middObj = Object.create(null);
   middObj.midds = [];
+  middObj.finalMidd = noopMidd;
   if (__.isFunction(optFinalCb)) {
-    middObj.midds.push(optFinalCb);
+    middObj.finalMidd = optFinalCb;
   }
 
   obj[prop] = middlewarify._runAll.bind(null, middObj);
@@ -46,30 +48,30 @@ middlewarify._runAll = function(middObj) {
   }
 
   var midds = Array.prototype.slice.call(middObj.midds, 0);
+  midds.push(middObj.finalMidd);
 
-  middlewarify._popAndInvoke(midds, args, done);
-
+  middlewarify._fetchAndInvoke(midds, args, done);
 };
 
 /**
- * Pop a middleware and invoke it.
+ * Fetch a middleware ensuring FIFO and invoke it.
  *
  * @param {Array.<Function>} midds The array with the middleware.
  * @param {Array} args An array of arbitrary arguments, can be empty.
  * @param {Function} done Callback.
  * @private
  */
-middlewarify._popAndInvoke = function(midds, args, done) {
+middlewarify._fetchAndInvoke = function(midds, args, done) {
   if (0 === midds.length) {
     return done();
   }
   try {
-    var midd = midds.pop();
+    var midd = midds.shift();
     midd.apply(null, args.concat(function(err){
       if (err) {
         done(err);
       } else {
-        middlewarify.popAndInvoke(midds, args, done);
+        middlewarify._fetchAndInvoke(midds, args, done);
       }
     }));
   } catch(ex) {
@@ -87,9 +89,12 @@ middlewarify._popAndInvoke = function(midds, args, done) {
 middlewarify._use = function(middObj) {
   var args = Array.prototype.slice.call(arguments, 1);
 
-  args.forEach(function(argItem){
+  var len = args.length;
+  if (0 === len) return;
+
+  args.forEach(function(argItem) {
     if (Array.isArray(argItem)) {
-      argItem.forEach(function(argFn){
+      argItem.forEach(function(argFn) {
         if (__.isFunction(argFn)) {
           middObj.midds.push(argFn);
         }
