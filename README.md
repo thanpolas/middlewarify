@@ -74,9 +74,8 @@ middlewarify.make(crud, 'delete');
 
 Each time `make()` is used two new functions are added to the `crud` Object:
 
-* `crud.create([, ...])` This method will invoke all added middleware in the sequence they were defined.
-* `crud.create.use(middleware)` This method will add middleware Functions to the `crud.create` container.
-
+* `crud.create([, ...], optCallback)` This method will invoke all added middleware in the sequence they were defined. If the final argument is a Function, it will be treated as a callback after all middleware have finished. `crud.create(function(err){/* check err */});
+* `crud.create.use(middleware [, ...])` This method will add middleware Functions to the `crud.create` container.
 
 #### The use(fn) Method
 
