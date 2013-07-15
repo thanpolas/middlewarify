@@ -125,3 +125,46 @@ suite('4. Final middleware arguments', function(){
     });
   });
 });
+
+suite('5. Failing cases', function(){
+  var obj;
+  setup(function(){
+    obj = Object.create(null);
+    midd.make(obj, 'create');
+
+  });
+  test('5.1 a middleware throws an error', function(){
+    obj.create.use(function(){
+      throw new Error('an error');
+    });
+    obj.create(function(err){
+      assert.instanceOf(err, Error, '"err" should be instanceOf Error');
+      assert.equal(err.message, 'an error', 'Error message should match');
+    });
+  });
+
+  test('5.2 a middleware calls next with an error', function(){
+    obj.create.use(function(next){
+      next(new Error('an error'));
+    });
+    obj.create(function(err){
+      assert.instanceOf(err, Error, '"err" should be instanceOf Error');
+      assert.equal(err.message, 'an error', 'Error message should match');
+    });
+  });
+
+  test('5.3 a failing middleware prevents rest of middleware from executing', function(){
+    obj.create.use(function(next){
+      next(new Error('an error'));
+    });
+
+    var middSpy = sinon.spy();
+    obj.create.use(middSpy);
+
+    obj.create(function(){
+      assert.notOk(middSpy.called, 'second middleware should not be called');
+    });
+  });
+
+
+});
