@@ -104,15 +104,24 @@ middlewarify.make(crud, 'create');
 crud.create(userDataObject);
 ```
 
-The optional callback should always be defined last, it gets invoked when all middleware have finished. It provides one argument, the `err` which if has a truthy value (typically an instance of `Error`) meas that something did not go well.
+The optional callback should always be defined last, it gets invoked when all middleware have finished. It provides at least one argument, `err` which if has a truthy value (typically an instance of `Error`) meas that something did not go well.
+
+**The last middleware** to be invoked can pass arguments to the *Create Callback* like so:
 
 ```js
 var crud = {};
-middlewarify.make(crud, 'create');
+var lastMiddlware = function(next) {
+    /* ... */
+    next(null, 'one', 'two');
+});
+middlewarify.make(crud, 'create', lastMiddlware);
 
 // run all middleware
-crud.create(userDataObject, function(err) {
+crud.create(userDataObject, function(err, arg1, arg2) {
   if (err) { /* tough love */ }
+
+  arg1 === 'one'; // true
+  arg2 === 'two'; // true
 });
 ```
 
@@ -132,7 +141,7 @@ crud.create(foo, bar);
 ```
 
 ## Release History
-- **v0.0.1**, *TBD JuL 2013*
+- **v0.0.2**, *15 JuL 2013*
   - Big Bang
 
 ## License
