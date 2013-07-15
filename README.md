@@ -2,6 +2,7 @@
 
 Apply the middleware pattern to any function.
 
+[![Build Status](https://travis-ci.org/thanpolas/middlewarify.png)](https://travis-ci.org/thanpolas/middlewarify)
 
 ## Install
 
