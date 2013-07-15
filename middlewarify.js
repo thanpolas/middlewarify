@@ -43,10 +43,7 @@ middlewarify._runAll = function(middObj) {
 
   var done = noop;
 
-  console.log('IS FUNC', args, __.isFunction(args[len - 1]));
-
   if (__.isFunction(args[len - 1])) {
-    console.log('WTF TRUE BIATCH');
     done = args.pop();
   }
 
@@ -65,6 +62,7 @@ middlewarify._runAll = function(middObj) {
  * @private
  */
 middlewarify._fetchAndInvoke = function(midds, args, done) {
+
   if (0 === midds.length) {
     return done();
   }
