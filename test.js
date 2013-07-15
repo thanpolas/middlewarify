@@ -94,22 +94,11 @@ suite('3. middleware() argument piping', function() {
   });
 
   teardown(function(){
-    assert.ok(firstMidd.calledOnce, 'firstMidd should be called only once');
-    assert.ok(secondMidd.calledOnce, 'secondMidd should be called only once');
-    assert.ok(thirdMidd.calledOnce, 'thirdMidd should be called only once');
-    assert.ok(lastMidd.calledOnce, 'lastMidd should be called only once');
-
-    assert.ok(firstMidd.calledBefore(secondMidd), 'firstMidd should be called before secondMidd');
-    assert.ok(secondMidd.calledAfter(firstMidd), 'secondMidd should be called after firstMidd');
-    assert.ok(thirdMidd.calledAfter(secondMidd), 'thirdMidd should be called after secondMidd');
-    assert.ok(lastMidd.calledAfter(thirdMidd), 'lastMidd should be called after thirdMidd');
-
   });
 
   test('3.1 Three arguments', function(done) {
     var foo = {a: 1};
     var bar = {b: 2};
-
     obj.create(1, foo, bar, function(err){
       assert.notOk(err, 'error should not be truthy');
       assert.ok(firstMidd.alwaysCalledWith(1, foo, bar), 'firstMidd should be invoked with these arguments');
@@ -119,7 +108,20 @@ suite('3. middleware() argument piping', function() {
       done();
     });
     callAll(3);
-
   });
+});
 
+suite('4. Final middleware arguments', function(){
+  test('4.1 Last middleware passes arguments to create callback', function(done) {
+    var obj = Object.create(null);
+    midd.make(obj, 'create', function(cb){
+      cb(null, 1, 2);
+    });
+
+    obj.create(function(err, arg1, arg2){
+      assert.equal(1, arg1, 'Arg1 should be 1');
+      assert.equal(2, arg2, 'Arg2 should be 2');
+      done();
+    });
+  });
 });
