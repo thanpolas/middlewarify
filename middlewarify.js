@@ -59,12 +59,15 @@ middlewarify._runAll = function(middObj) {
  * @param {Array.<Function>} midds The array with the middleware.
  * @param {Array} args An array of arbitrary arguments, can be empty.
  * @param {Function} done Callback.
+ * @param {...*} optMiddArgs Arguments passed from the last middleware.
  * @private
  */
-middlewarify._fetchAndInvoke = function(midds, args, done) {
+middlewarify._fetchAndInvoke = function(midds, args, done, optMiddArgs) {
+  var lastMiddArgs = optMiddArgs || [];
 
   if (0 === midds.length) {
-    return done();
+    lastMiddArgs.unshift(null);
+    return done.apply(null, lastMiddArgs);
   }
   try {
     var midd = midds.shift();
@@ -72,7 +75,8 @@ middlewarify._fetchAndInvoke = function(midds, args, done) {
       if (err) {
         done(err);
       } else {
-        middlewarify._fetchAndInvoke(midds, args, done);
+        var middArgs = Array.prototype.slice.call(arguments, 1);
+        middlewarify._fetchAndInvoke(midds, args, done, middArgs);
       }
     }));
   } catch(ex) {
