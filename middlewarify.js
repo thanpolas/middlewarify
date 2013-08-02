@@ -34,23 +34,33 @@ middlewarify.make = function(obj, prop, optFinalCb) {
  * @param  {Object} middObj Internal midd object.
  * @param  {*...} varArgs Any number of arguments
  * @param  {Function=} optCb last argument is callback
+ * @return {Object} the -master- callback using done(fn).
  * @private
  */
 middlewarify._runAll = function(middObj) {
   var args = Array.prototype.slice.call(arguments, 1);
 
-  var len = args.length;
-
-  var done = noop;
-
-  if (__.isFunction(args[len - 1])) {
-    done = args.pop();
-  }
+  var doneArgs;
+  var isDone = false;
+  var doneActual = noop;
+  var done = function() {
+    isDone = true;
+    doneArgs = arguments;
+    doneActual.apply(null, arguments);
+  };
 
   var midds = Array.prototype.slice.call(middObj.midds, 0);
   midds.push(middObj.finalMidd);
 
   middlewarify._fetchAndInvoke(midds, args, done);
+
+  return {done: function(fn) {
+    if (isDone) {
+      fn.apply(null, doneArgs);
+    } else {
+      doneActual = fn;
+    }
+  }};
 };
 
 /**

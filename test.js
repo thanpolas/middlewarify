@@ -26,6 +26,7 @@ suite('1. Basic Tests', function() {
     midd.make(obj, 'create');
     assert.isFunction(obj.create, 'obj.create should be a function');
     assert.isFunction(obj.create.use, 'obj.create.use should be a function');
+    assert.isFunction(obj.create().done, 'obj.create().done should be a function');
   });
 });
 
@@ -99,7 +100,7 @@ suite('3. middleware() argument piping', function() {
   test('3.1 Three arguments', function(done) {
     var foo = {a: 1};
     var bar = {b: 2};
-    obj.create(1, foo, bar, function(err){
+    obj.create(1, foo, bar).done(function(err){
       assert.notOk(err, 'error should not be truthy');
       assert.ok(firstMidd.alwaysCalledWith(1, foo, bar), 'firstMidd should be invoked with these arguments');
       assert.ok(secondMidd.alwaysCalledWith(1, foo, bar), 'secondMidd should be invoked with these arguments');
@@ -118,7 +119,7 @@ suite('4. Final middleware arguments', function(){
       cb(null, 1, 2);
     });
 
-    obj.create(function(err, arg1, arg2){
+    obj.create().done(function(err, arg1, arg2) {
       assert.equal(1, arg1, 'Arg1 should be 1');
       assert.equal(2, arg2, 'Arg2 should be 2');
       done();
@@ -137,7 +138,7 @@ suite('5. Failing cases', function(){
     obj.create.use(function(){
       throw new Error('an error');
     });
-    obj.create(function(err){
+    obj.create().done(function(err){
       assert.instanceOf(err, Error, '"err" should be instanceOf Error');
       assert.equal(err.message, 'an error', 'Error message should match');
     });
@@ -147,7 +148,7 @@ suite('5. Failing cases', function(){
     obj.create.use(function(next){
       next(new Error('an error'));
     });
-    obj.create(function(err){
+    obj.create().done(function(err){
       assert.instanceOf(err, Error, '"err" should be instanceOf Error');
       assert.equal(err.message, 'an error', 'Error message should match');
     });
@@ -161,7 +162,7 @@ suite('5. Failing cases', function(){
     var middSpy = sinon.spy();
     obj.create.use(middSpy);
 
-    obj.create(function(){
+    obj.create().done(function(){
       assert.notOk(middSpy.called, 'second middleware should not be called');
     });
   });

@@ -53,10 +53,15 @@ tasks.create.use(function(done){
 
 ```js
 // ... Invoking them all together
-tasks.create(function(err){
+tasks.create();
+```
+
+Invoking the middleware will return an object with a `done` property which you can use to setup your callbacks:
+
+```js
+tasks.create().done(function(err) {
   // all middleware finished.
 });
-
 ```
 
 ### Methods
@@ -117,7 +122,7 @@ var lastMiddlware = function(next) {
 middlewarify.make(crud, 'create', lastMiddlware);
 
 // run all middleware
-crud.create(userDataObject, function(err, arg1, arg2) {
+crud.create(userDataObject).done(function(err, arg1, arg2) {
   if (err) { /* tough love */ }
 
   arg1 === 'one'; // true
@@ -141,6 +146,8 @@ crud.create(foo, bar);
 ```
 
 ## Release History
+- **v0.0.3**, *02 Aug 2013*
+  - Added a more explicit way to declare callbacks when invoking the middleware.
 - **v0.0.2**, *15 JuL 2013*
   - Big Bang
 
