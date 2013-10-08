@@ -127,7 +127,7 @@ suite('4. Final middleware arguments', function(){
   });
 });
 
-suite('5. Failing cases', function(){
+suite('5. Failing middleware cases', function(){
   var obj;
   setup(function(){
     obj = Object.create(null);
@@ -166,6 +166,21 @@ suite('5. Failing cases', function(){
       assert.notOk(middSpy.called, 'second middleware should not be called');
     });
   });
+});
 
+suite('6. Failing final function', function() {
+  var obj;
+  setup(function(){
+    obj = Object.create(null);
+    midd.make(obj, 'create', function() {
+      throw new Error('base error');
+    });
+  });
+  test('6.1 Final fn throws an error', function(){
 
+    obj.create().done(function(err){
+      assert.instanceOf(err, Error, '"err" should be instanceOf Error');
+      assert.equal(err.message, 'an error', 'Error message should match');
+    });
+  });
 });
