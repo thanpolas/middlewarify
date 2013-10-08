@@ -122,7 +122,7 @@ crud.create.use(function(next) {
 });
 ```
 
-The first argument of the callback is the **error indicator**, any truthy value passed will be considered as an error and stop executing the middleware chain right there and then.
+The first argument of the `next()` callback is the **error indicator**, any truthy value passed will be considered an error and stop executing the middleware chain right there and then.
 
 ```js
 crud.create.use(function(next) {
@@ -147,7 +147,7 @@ middlewarify.make(crud, 'create');
 crud.create({a: 1, b:2}, 'bar');
 ```
 
-So if we had setup a middleware that's what arguments it would get:
+Arguments middleware will get:
 
 ```js
 crud.create.use(function(arg1, arg2, next) {
@@ -161,7 +161,7 @@ crud.create.use(function(arg1, arg2, next) {
 
 #### Getting the Middleware Results and Error Handling
 
-Because any argument passed to the Middleware Container (`crud.create(arg1, arg2, fn1);` will get piped to all the middleware, we cannot add a callback within these arguments. Thus the function `.done()` is provided, so you can check for errors or the final results.
+Because any argument passed to the Middleware Container (`crud.create(arg1, arg2, fn1);`) will get piped to the middleware, we cannot add a callback within these arguments. Thus the function `.done()` is provided, so you can check for errors or results.
 
 ```js
 crud.create(arg1, arg2, fn1).done(function(err) {
@@ -196,7 +196,7 @@ crud.create().done(function(err, arg1, arg2) {
 });
 ```
 
-> **Beware of Error Handling** Middlewarify will catch all thrown errors from your middleware. They will be piped to the `.done()` method. So if any of your middleware functions throws an error, it will not be visible unless you setup the `done()` callback.
+> **Beware of Error Handling** Middlewarify will catch all thrown errors from your middleware. They will be piped to the `.done()` method. So if any of your middleware functions throws an error, it will not be visible unless you setup the `.done()` callback.
 
 ## Release History
 - **v0.0.3**, *02 Aug 2013*
