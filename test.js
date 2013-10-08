@@ -168,19 +168,3 @@ suite('5. Failing middleware cases', function(){
   });
 });
 
-suite('6. Failing final function', function() {
-  var obj;
-  setup(function(){
-    obj = Object.create(null);
-    midd.make(obj, 'create', function() {
-      throw new Error('base error');
-    });
-  });
-  test('6.1 Final fn throws an error', function(){
-
-    obj.create().done(function(err){
-      assert.instanceOf(err, Error, '"err" should be instanceOf Error');
-      assert.equal(err.message, 'an error', 'Error message should match');
-    });
-  });
-});

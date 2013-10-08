@@ -76,12 +76,12 @@ tasks.create().done(function(err) {
 The `middlewarify.make()` method will apply the middleware pattern to an Object's property, this property will be called the *Middleware Container*.
 
 ```js
-// create a middleware
+// create a Middleware Container
 var crud = {};
 middlewarify.make(crud, 'create');
 ```
 
-This example has created the Middleware Container `create` in the object `crud`. Read on for how to add middleware, invoke them and view the results.
+This example has created the Middleware Container `create` in the object `crud`. `create.crud` is a function that will invoke all the middleware.
 
 You can add a third argument, the `optFinalCallback`. As the name suggests this will be the final callback to be invoked in the chain of middleware execution. This callback gets the same arguments as any other middleware.
 
@@ -116,7 +116,7 @@ All middleware gets invoked with a callback so it can pass control to the next m
 following up on the previous examples:
 
 ```js
-crud.use(function(next) {
+crud.create.use(function(next) {
     // do stuff
     next();
 });
@@ -125,7 +125,7 @@ crud.use(function(next) {
 The first argument of the callback is the **error indicator**, any truthy value passed will be considered as an error and stop executing the middleware chain right there and then.
 
 ```js
-crud.use(function(next) {
+crud.create.use(function(next) {
     // something went wrong, bail out
     next('an error occured');
 });
