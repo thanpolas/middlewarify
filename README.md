@@ -71,7 +71,7 @@ tasks.create().done(function(err) {
 
 ### Methods
 
-#### make(object, property, optFinalCallback)
+#### make(object, property, optFinalCallback, optOptions)
 
 The `middlewarify.make()` method will apply the middleware pattern to an Object's property, this property will be called the *Middleware Container*.
 
@@ -84,6 +84,29 @@ middlewarify.make(crud, 'create');
 This example has created the Middleware Container `create` in the object `crud`. `create.crud` is a function that will invoke all the middleware.
 
 You can add a third argument, the `optFinalCallback`. As the name suggests this will be the final callback to be invoked in the chain of middleware execution. This callback gets the same arguments as any other middleware.
+
+##### make() Options
+
+`make()` accepts the following options:
+
+* `throwErrors` type: **Boolean**, default: `true` If set to false all thrown errors will be suppressed and available only through the `.done()` method.
+
+```js
+
+// don't throw errors
+var crud = {};
+middlewarify.make(crud, 'create', {throwErrors: false});
+
+crud.create.use(function(){
+    throw new Error('an error');
+});
+
+// executing the middleware will not throw an error, the exception
+// will be available only through the .done() callback
+crud.create().done(function(err) {
+    err.message === 'an error'; // true
+});
+```
 
 #### The use(fn) Method
 
@@ -199,6 +222,8 @@ crud.create().done(function(err, arg1, arg2) {
 > **Beware of Error Handling** Middlewarify will catch all thrown errors from your middleware. They will be piped to the `.done()` method. So if any of your middleware functions throws an error, it will not be visible unless you setup the `.done()` callback.
 
 ## Release History
+- **v0.0.4**, *10 Oct 2013*
+  - Added option to not throw errors
 - **v0.0.3**, *02 Aug 2013*
   - Added a more explicit way to declare callbacks when invoking the middleware.
 - **v0.0.2**, *15 JuL 2013*
