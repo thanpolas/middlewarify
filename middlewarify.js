@@ -12,17 +12,29 @@ var noopMidd = function(cb) {if (__.isFunction(cb)) cb();};
 /**
  * Apply the middleware pattern to the provided object's propert.
  *
- * @param  {Object} obj An Object.
- * @param  {string} prop The property to apply the middleware pattern on.
- * @param  {Function=} optFinalCb Last middleware to call.
+ * @param {Object} obj An Object.
+ * @param {string} prop The property to apply the middleware pattern on.
+ * @param {Function=} optFinalCb Last middleware to call.
+ * @param {Object=} optParams Optional parameters.
+ *   @param {boolean=} throwErrors default is true.
  */
-middlewarify.make = function(obj, prop, optFinalCb) {
+middlewarify.make = function(obj, prop, optFinalCb, optParams) {
 
   var middObj = Object.create(null);
   middObj.midds = [];
   middObj.finalMidd = noopMidd;
+  middObj.params = {
+    throwErrors: true,
+  };
+
   if (__.isFunction(optFinalCb)) {
     middObj.finalMidd = optFinalCb;
+  }
+  if (__.isObject(optFinalCb)) {
+    __.defaults(middObj.params, optFinalCb);
+  }
+  if (__.isObject(optParams)) {
+    __.defaults(middObj.params, optParams);
   }
 
   obj[prop] = middlewarify._runAll.bind(null, middObj);
@@ -79,8 +91,9 @@ middlewarify._fetchAndInvoke = function(midds, args, done, optMiddArgs) {
     lastMiddArgs.unshift(null);
     return done.apply(null, lastMiddArgs);
   }
+
+  var midd = midds.shift();
   try {
-    var midd = midds.shift();
     midd.apply(null, args.concat(function(err){
       if (err) {
         done(err);
@@ -90,7 +103,11 @@ middlewarify._fetchAndInvoke = function(midds, args, done, optMiddArgs) {
       }
     }));
   } catch(ex) {
-    done(ex);
+    if (midd.param.throwErrors) {
+      throw ex;
+    } else {
+      done(ex);
+    }
   }
 };
 
