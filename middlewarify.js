@@ -31,10 +31,10 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
     middObj.finalMidd = optFinalCb;
   }
   if (__.isObject(optFinalCb)) {
-    __.defaults(middObj.params, optFinalCb);
+    __.extend(middObj.params, optFinalCb);
   }
   if (__.isObject(optParams)) {
-    __.defaults(middObj.params, optParams);
+    __.extend(middObj.params, optParams);
   }
 
   obj[prop] = middlewarify._runAll.bind(null, middObj);
@@ -64,7 +64,7 @@ middlewarify._runAll = function(middObj) {
   var midds = Array.prototype.slice.call(middObj.midds, 0);
   midds.push(middObj.finalMidd);
 
-  middlewarify._fetchAndInvoke(midds, args, done);
+  middlewarify._fetchAndInvoke(midds, args, middObj.params, done);
 
   return {done: function(fn) {
     if (isDone) {
@@ -80,11 +80,12 @@ middlewarify._runAll = function(middObj) {
  *
  * @param {Array.<Function>} midds The array with the middleware.
  * @param {Array} args An array of arbitrary arguments, can be empty.
+ * @param {Object} params Parameters passed by the user.
  * @param {Function} done Callback.
  * @param {...*} optMiddArgs Arguments passed from the last middleware.
  * @private
  */
-middlewarify._fetchAndInvoke = function(midds, args, done, optMiddArgs) {
+middlewarify._fetchAndInvoke = function(midds, args, params, done, optMiddArgs) {
   var lastMiddArgs = optMiddArgs || [];
 
   if (0 === midds.length) {
@@ -99,11 +100,11 @@ middlewarify._fetchAndInvoke = function(midds, args, done, optMiddArgs) {
         done(err);
       } else {
         var middArgs = Array.prototype.slice.call(arguments, 1);
-        middlewarify._fetchAndInvoke(midds, args, done, middArgs);
+        middlewarify._fetchAndInvoke(midds, args, params, done, middArgs);
       }
     }));
   } catch(ex) {
-    if (midd.param.throwErrors) {
+    if (params.throwErrors) {
       throw ex;
     } else {
       done(ex);

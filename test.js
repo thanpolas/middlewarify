@@ -132,13 +132,22 @@ suite('5. Failing middleware cases', function(){
   setup(function(){
     obj = Object.create(null);
     midd.make(obj, 'create');
-
   });
-  test('5.1 a middleware throws an error', function(){
+  test('5.1.1 middleware throws an error', function(){
     obj.create.use(function(){
       throw new Error('an error');
     });
-    obj.create().done(function(err){
+
+    assert.throws(obj.create, Error);
+  });
+
+  test('5.1.2 middleware throws an error when param is not throw', function(){
+    var custObj = Object.create(null);
+    midd.make(custObj, 'create', {throwErrors: false});
+    custObj.create.use(function(){
+      throw new Error('an error');
+    });
+    custObj.create().done(function(err){
       assert.instanceOf(err, Error, '"err" should be instanceOf Error');
       assert.equal(err.message, 'an error', 'Error message should match');
     });
