@@ -35,7 +35,7 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
    *
    * @type {Object}
    */
-  middObj.params = {
+  var defaultParams = {
     throwErrors: true,
     beforeAfter: false,
   };
@@ -43,12 +43,15 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
   if (__.isFunction(optFinalCb)) {
     middObj.mainCallback = optFinalCb;
   }
+
+  var params;
   if (__.isObject(optFinalCb)) {
-    __.defaults(middObj.params, optFinalCb);
+    params = optFinalCb;
   }
   if (__.isObject(optParams)) {
-    __.defaults(middObj.params, optParams);
+    params = optParams;
   }
+  middObj.params = __.extend(defaultParams, params);
 
   obj[prop] = middlewarify._invokeMiddleware.bind(null, middObj);
 
@@ -87,7 +90,7 @@ middlewarify._invokeMiddleware = function(middObj) {
   if (middObj.params.beforeAfter) {
     midds = Array.prototype.slice.call(middObj.beforeMidds, 0);
     midds.push(middObj.mainCallback);
-    midds.concat(middObj.afterMidds);
+    midds = midds.concat(middObj.afterMidds);
   } else {
     midds = Array.prototype.slice.call(middObj.midds, 0);
     midds.push(middObj.mainCallback);

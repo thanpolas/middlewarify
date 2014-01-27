@@ -1,11 +1,10 @@
 /**
  * @fileOverview middlewarify tests
  */
-return;
 var sinon  = require('sinon');
 var assert = require('chai').assert;
 
-var midd = require('./');
+var midd = require('../');
 
 // var noop = function(){};
 
@@ -51,15 +50,16 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
     });
   });
 
-  teardown(function(){
+  teardown(function() {
     obj.create();
+
     midd1.yield();
     midd2.yield();
     midd3.yield();
+    fnPayload.yield();
     midd4.yield();
     midd5.yield();
     midd6.yield();
-    fnPayload.yield();
 
     assert.ok(midd1.calledOnce, 'midd1 called only once');
     assert.ok(midd2.calledOnce, 'midd2 called only once');
@@ -103,20 +103,20 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
 });
 
 suite('6.3. middleware() argument piping', function() {
-  var obj, lastMidd, firstMidd, secondMidd, thirdMidd;
+  var obj, mainMidd, firstMidd, secondMidd, thirdMidd;
   function callAll(index) {
     firstMidd.callArg(index);
     secondMidd.callArg(index);
+    mainMidd.callArg(index);
     thirdMidd.callArg(index);
-    lastMidd.callArg(index);
   }
   setup(function() {
     obj = Object.create(null);
-    lastMidd = sinon.spy();
+    mainMidd = sinon.spy();
     firstMidd = sinon.spy();
     secondMidd = sinon.spy();
     thirdMidd = sinon.spy();
-    midd.make(obj, 'create', lastMidd);
+    midd.make(obj, 'create', mainMidd, {beforeAfter: true});
     obj.create.before(firstMidd, secondMidd);
     obj.create.after(thirdMidd);
   });
@@ -132,7 +132,7 @@ suite('6.3. middleware() argument piping', function() {
       assert.ok(firstMidd.alwaysCalledWith(1, foo, bar), 'firstMidd should be invoked with these arguments');
       assert.ok(secondMidd.alwaysCalledWith(1, foo, bar), 'secondMidd should be invoked with these arguments');
       assert.ok(thirdMidd.alwaysCalledWith(1, foo, bar), 'thirdMidd should be invoked with these arguments');
-      assert.ok(lastMidd.alwaysCalledWith(1, foo, bar), 'lastMidd should be invoked with these arguments');
+      assert.ok(mainMidd.alwaysCalledWith(1, foo, bar), 'mainMidd should be invoked with these arguments');
       done();
     });
     callAll(3);
@@ -144,7 +144,7 @@ suite('6.4. Final middleware arguments', function(){
     var obj = Object.create(null);
     midd.make(obj, 'create', function(cb){
       cb(null, 1, 2);
-    });
+    }, {beforeAfter: true});
 
     obj.create().done(function(err, arg1, arg2) {
       assert.equal(1, arg1, 'Arg1 should be 1');
@@ -158,7 +158,7 @@ suite('6.5. Failing middleware cases', function(){
   var obj;
   setup(function(){
     obj = Object.create(null);
-    midd.make(obj, 'create');
+    midd.make(obj, 'create', {beforeAfter: true});
   });
   test('6.5.1.1 Before middleware throws an error', function(){
     obj.create.before(function(){
@@ -179,10 +179,12 @@ suite('6.5. Failing middleware cases', function(){
 
   test('6.5.1.2 Before middleware throws an error when param is not throw', function(){
     var custObj = Object.create(null);
-    midd.make(custObj, 'create', {throwErrors: false});
-    custObj.create.before(function(){
+    midd.make(custObj, 'create', {throwErrors: false, beforeAfter: true});
+
+    custObj.create.before(function() {
       throw new Error('an error');
     });
+
     custObj.create().done(function(err){
       assert.instanceOf(err, Error, '"err" should be instanceOf Error');
       assert.equal(err.message, 'an error', 'Error message should match');
@@ -190,7 +192,7 @@ suite('6.5. Failing middleware cases', function(){
   });
   test('6.5.1.3 After middleware throws an error when param is not throw', function(){
     var custObj = Object.create(null);
-    midd.make(custObj, 'create', {throwErrors: false});
+    midd.make(custObj, 'create', {throwErrors: false, beforeAfter: true});
     custObj.create.after(function(){
       throw new Error('an error');
     });
