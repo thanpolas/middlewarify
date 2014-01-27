@@ -5,7 +5,7 @@
 var sinon  = require('sinon');
 var assert = require('chai').assert;
 
-var midd = require('./');
+var midd = require('../');
 
 // var noop = function(){};
 
@@ -109,6 +109,24 @@ suite('3. middleware() argument piping', function() {
       done();
     });
     callAll(3);
+  });
+
+  test('3.2 A callback as middleware invocation argument', function(done) {
+    midd.make(obj, 'read', function(argCb, middDone) {
+      argCb(666);
+      middDone(null, 999);
+    });
+
+    obj.read.use(function(argCb, next) {
+      assert.isFunction(argCb);
+      next();
+    });
+
+    obj.read(function(arg) {
+      assert.lengthOf(arguments, 1);
+      assert.equal(arg, 666);
+      done();
+    });
   });
 });
 
