@@ -9,6 +9,13 @@ var middlewarify = module.exports = {};
 var noop = function() {};
 var noopMidd = function(cb) {if (__.isFunction(cb)) cb();};
 
+/** @enum {string} middleware types */
+middlewarify.Type = {
+  BEFORE: 'before',
+  AFTER: 'after',
+  USE: 'use',
+};
+
 /**
  * Apply the middleware pattern to the provided object's propert.
  *
@@ -21,24 +28,39 @@ var noopMidd = function(cb) {if (__.isFunction(cb)) cb();};
 middlewarify.make = function(obj, prop, optFinalCb, optParams) {
 
   var middObj = Object.create(null);
-  middObj.midds = [];
-  middObj.finalMidd = noopMidd;
+  middObj.mainCallback = noopMidd;
+
+  /**
+   * The default parameters object.
+   *
+   * @type {Object}
+   */
   middObj.params = {
     throwErrors: true,
+    beforeAfter: false,
   };
 
   if (__.isFunction(optFinalCb)) {
-    middObj.finalMidd = optFinalCb;
+    middObj.mainCallback = optFinalCb;
   }
   if (__.isObject(optFinalCb)) {
-    __.extend(middObj.params, optFinalCb);
+    __.defaults(middObj.params, optFinalCb);
   }
   if (__.isObject(optParams)) {
-    __.extend(middObj.params, optParams);
+    __.defaults(middObj.params, optParams);
   }
 
-  obj[prop] = middlewarify._runAll.bind(null, middObj);
-  obj[prop].use = middlewarify._use.bind(null, middObj);
+  obj[prop] = middlewarify._invokeMiddleware.bind(null, middObj);
+
+  if (middObj.params.beforeAfter) {
+    middObj.beforeMidds = [];
+    middObj.afterMidds = [];
+    obj[prop].before = middlewarify._use.bind(null, middObj, middlewarify.Type.BEFORE);
+    obj[prop].after = middlewarify._use.bind(null, middObj, middlewarify.Type.AFTER);
+  } else {
+    middObj.midds = [];
+    obj[prop].use = middlewarify._use.bind(null, middObj, middlewarify.Type.USE);
+  }
 };
 
 /**
@@ -49,7 +71,7 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
  * @return {Object} the -master- callback using done(fn).
  * @private
  */
-middlewarify._runAll = function(middObj) {
+middlewarify._invokeMiddleware = function(middObj) {
   var args = Array.prototype.slice.call(arguments, 1);
 
   var doneArgs;
@@ -61,9 +83,15 @@ middlewarify._runAll = function(middObj) {
     doneActual.apply(null, arguments);
   };
 
-  var midds = Array.prototype.slice.call(middObj.midds, 0);
-  midds.push(middObj.finalMidd);
-
+  var midds;
+  if (middObj.params.beforeAfter) {
+    midds = Array.prototype.slice.call(middObj.beforeMidds, 0);
+    midds.push(middObj.mainCallback);
+    midds.concat(middObj.afterMidds);
+  } else {
+    midds = Array.prototype.slice.call(middObj.midds, 0);
+    midds.push(middObj.mainCallback);
+  }
   middlewarify._fetchAndInvoke(midds, args, middObj.params, done);
 
   return {done: function(fn) {
@@ -115,25 +143,40 @@ middlewarify._fetchAndInvoke = function(midds, args, params, done, optMiddArgs) 
 /**
  * Add middleware.
  *
- * @param  {Object} middObj Internal midd object.
+ * @param {Object} middObj Internal midd object.
+ * @param {middlewarify.Type} middType Middleware type.
  * @param {Function|Array.<Function>...} Any combination of function containers.
  * @private
  */
-middlewarify._use = function(middObj) {
-  var args = Array.prototype.slice.call(arguments, 1);
+middlewarify._use = function(middObj, middType) {
+  var middlewares = Array.prototype.slice.call(arguments, 2);
 
-  var len = args.length;
+  var len = middlewares.length;
   if (0 === len) return;
 
-  args.forEach(function(argItem) {
-    if (Array.isArray(argItem)) {
-      argItem.forEach(function(argFn) {
+  function pushMidd(fn) {
+    switch(middType) {
+    case middlewarify.Type.BEFORE:
+      middObj.beforeMidds.push(fn);
+      break;
+    case middlewarify.Type.AFTER:
+      middObj.afterMidds.push(fn);
+      break;
+    case middlewarify.Type.USE:
+      middObj.midds.push(fn);
+      break;
+    }
+  }
+
+  middlewares.forEach(function(middleware) {
+    if (Array.isArray(middleware)) {
+      middleware.forEach(function(argFn) {
         if (__.isFunction(argFn)) {
-          middObj.midds.push(argFn);
+          pushMidd(argFn);
         }
       });
-    } else if (__.isFunction(argItem)) {
-      middObj.midds.push(argItem);
+    } else if (__.isFunction(middleware)) {
+      pushMidd(middleware);
     }
   });
 };
