@@ -1,8 +1,11 @@
 # Middlewarify
 
-Apply the middleware pattern to any function.
+Apply the middleware pattern easily. You can add two types of middleware, a single queue type using the keyword `use()` for hooking or a before / after type using `before()` and `after()` hooks.
 
 [![Build Status](https://travis-ci.org/thanpolas/middlewarify.png)](https://travis-ci.org/thanpolas/middlewarify)
+
+[![NPM](https://nodei.co/npm/middlewarify.png?downloads=true&stars=true)](https://nodei.co/npm/middlewarify/)
+
 
 ## Install
 
@@ -10,10 +13,9 @@ Apply the middleware pattern to any function.
 npm install middlewarify --save
 ```
 
-## Documentation
+## Quick Start
 
-
-### Quick Start Examples
+### Quick Start Example
 
 Creating a middleware:
 
@@ -22,14 +24,15 @@ var midd = require('middlewarify');
 
 var tasks = module.exports = {};
 
-// this will be the last callback to be invoked
-tasks._create = function(done) {
-  console.log('tasks._create Final Fn to be invoked');
+// this is the main callback of your middleware,
+// it will be the last callback to be invoked.
+function createTask(done) {
+  console.log('createTask Final Fn to be invoked');
   done();
-};
+}
 
 // Make the'create' Middleware Container.
-midd.make(tasks, 'create', tasks._create);
+midd.make(tasks, 'create', createTask);
 ```
 
 ...Add middleware
@@ -69,9 +72,51 @@ tasks.create().done(function(err) {
 });
 ```
 
-### Methods
+#### Using the Before / After Middleware type
 
-#### make(object, property, optFinalCallback, optOptions)
+```js
+var midd = require('middlewarify');
+
+var tasks = module.exports = {};
+
+// This is the main callback of your middleware,
+// it will be invoked after all 'before' middleware finish
+// and before any 'after' middleware.
+function createTask(done) {
+    console.log('Invoked Second');
+    done(null);
+};
+
+// Make the'create' Middleware Container using before/after hooks
+midd.make(tasks, 'create', createTask, {beforeAfter: true});
+
+/** ... */
+
+// add a before hook
+tasks.create.before(function(next) {
+    console.log('Invoked First');
+    next();
+});
+
+// add an after hook
+tasks.create.after(function(next) {
+    console.log('Invoked Third and last');
+    next();
+});
+
+/** ... */
+
+// invoke all middleware
+tasks.create().done(function(err){
+    // at this point all middleware have finished.
+});
+
+```
+
+
+## Middlewarify Methods
+
+### make(object, property, optMainCallback, optOptions)
 
 The `middlewarify.make()` method will apply the middleware pattern to an Object's property, this property will be called the *Middleware Container*.
 
@@ -83,13 +128,16 @@ middlewarify.make(crud, 'create');
 
 This example has created the Middleware Container `create` in the object `crud`. `create.crud` is a function that will invoke all the middleware.
 
-You can add a third argument, the `optFinalCallback`. As the name suggests this will be the final callback to be invoked in the chain of middleware execution. This callback gets the same arguments as any other middleware.
+You can add a third argument, the `optMainCallback`, this is the main payload of your middleware. `optOptions` is one more argument you can pass to Middlewarify to define behavior. Both `optOptions` and `optMainCallback` are optional and can be interswitched, i.e. you can pass options as a third argument, read on for examples and what are the available options.
 
-##### make() Options
+#### make() Options
 
 `make()` accepts the following options:
 
 * `throwErrors` type: **Boolean**, default: `true` If set to false all thrown errors will be suppressed and available only through the `.done()` method.
+* `beforeAfter` type: **Boolean**, default: `false` If set to true the Before/After hooks will be used instead of the single queue `use` hook, which is the default, view the [example displayed above](Using-the-Before-After-Middleware-type).
+
+##### `throwErrors` Example
 
 ```js
 
@@ -110,7 +158,7 @@ crud.create().done(function(err) {
 
 #### The use(fn) Method
 
-The Middleware Container exposes a `use` method so you can add any number of middleware. `use()` accepts any number of parameters as long they are of type Function or Arrays of Functions.
+The Middleware Container by default exposes a `use` method so you can add any number of middleware. `use()` accepts any number of parameters as long they are of type Function or Arrays of Functions. When the Before/After flag is enabled `use` is no longer there and instead you get `before` and `after` methods to hook your middleware. All three hook types accept the same argument types and patterns as described bellow.
 
 ```js
 // create the Middleware Container
@@ -221,13 +269,78 @@ crud.create().done(function(err, arg1, arg2) {
 
 > **Beware of Error Handling** Middlewarify will catch all thrown errors from your middleware. They will be piped to the `.done()` method. So if any of your middleware functions throws an error, it will not be visible unless you setup the `.done()` callback.
 
+#### Why a .done() function
+
+The trailling `.done()` function will notify you of the ultimate outcome of the middleware execution. The problem for having the callback as an argument when invoking the middleware with `tasks.create()` is that there is no way to determine if that is the callback to call when all middleware are done, or an argument that should be passed to all middleware.
+
+This becomes more aparent when using the Before/After feature of Middlewarify which binds a `before` and `after` functions instead of `use`.
+
+```js
+
+var midd = require('middlewarify');
+
+var tasks = module.exports = {};
+
+// this is the main callback of your middleware.
+function createTask(cb, done) {
+  anAsyncOp(function(err, result) {
+    if (err) {
+        cb(err);
+        done(err);
+        return;
+    }
+
+    // cb is the anon function passed as argument when the middleware will be
+    // invoked, done will signal to Middlewarify that execution has completed.
+    cb(null, result);
+    done(null, result);
+  });
+}
+
+// Make the'create' Middleware Container using before/after hooks
+midd.make(tasks, 'create', createTask, {beforeAfter: true});
+
+/** ... */
+
+// add a before hook
+tasks.create.before(function(cb, next) {
+    // ...
+    next();
+});
+
+// add an after hook
+tasks.create.after(function(cb, result, next) {
+    // do something with "result"
+    next();
+});
+
+/** ... */
+
+// invoke all middleware
+tasks.create(function(err, result, done){
+    // this is invoked by the "createTask" function and BEFORE any of the
+    // "after" middleware are executed.
+
+    done();
+}).done(function(err, fn, result){
+    // the "fn" is the anon function defined as an argument to tasks.create()!
+
+    // at this point all middleware have finished.
+});
+
+```
+
+
 ## Release History
+- **v0.1.0**, *28 Jan 2014*
+    - Added Before/After feature
+    - Reorganized tests
 - **v0.0.4**, *10 Oct 2013*
-  - Added option to not throw errors
+    - Added option to not throw errors
 - **v0.0.3**, *02 Aug 2013*
-  - Added a more explicit way to declare callbacks when invoking the middleware.
+    - Added a more explicit way to declare callbacks when invoking the middleware.
 - **v0.0.2**, *15 JuL 2013*
-  - Big Bang
+    - Big Bang
 
 ## License
 Copyright 2013 Thanasis Polychronakis
