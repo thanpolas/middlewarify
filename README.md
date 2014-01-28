@@ -1,6 +1,6 @@
 # Middlewarify
 
-Apply the middleware pattern easily. You can add two types of middleware, a single queue type using the keyword `use()` for hooking or a before / after type using `before()` and `after()` hooks.
+Apply the middleware pattern, easy. You can add two types of middleware, a single queue type using the keyword `use()` or a Before/After type using `before()` and `after()` hooks.
 
 [![Build Status](https://travis-ci.org/thanpolas/middlewarify.png)](https://travis-ci.org/thanpolas/middlewarify)
 
@@ -135,7 +135,7 @@ You can add a third argument, the `optMainCallback`, this is the main payload of
 `make()` accepts the following options:
 
 * `throwErrors` type: **Boolean**, default: `true` If set to false all thrown errors will be suppressed and available only through the `.done()` method.
-* `beforeAfter` type: **Boolean**, default: `false` If set to true the Before/After hooks will be used instead of the single queue `use` hook, which is the default, view the [example displayed above](Using-the-Before-After-Middleware-type).
+* `beforeAfter` type: **Boolean**, default: `false` If set to true the Before/After hooks will be used instead of the single queue `use` hook, which is the default, view the [example displayed above](#using-the-before--after-middleware-type).
 
 ##### `throwErrors` Example
 
