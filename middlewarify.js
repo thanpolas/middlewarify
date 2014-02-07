@@ -75,9 +75,8 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
  * @private
  */
 middlewarify._invokeMiddleware = function(middObj) {
+  var args = Array.prototype.slice.call(arguments, 1);
   return new Promise(function(resolve, reject) {
-    var args = Array.prototype.slice.call(arguments, 1);
-
     var midds;
     if (middObj.params.beforeAfter) {
       midds = Array.prototype.slice.call(middObj.beforeMidds);

@@ -55,14 +55,6 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
   teardown(function() {
     obj.create();
 
-    midd1.yield();
-    midd2.yield();
-    midd3.yield();
-    fnPayload.yield();
-    midd4.yield();
-    midd5.yield();
-    midd6.yield();
-
     assert.ok(midd1.calledOnce, 'midd1 called only once');
     assert.ok(midd2.calledOnce, 'midd2 called only once');
     assert.ok(midd3.calledOnce, 'midd3 called only once');
@@ -106,12 +98,6 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
 
 suite('6.3. middleware() argument piping', function() {
   var obj, mainMidd, firstMidd, secondMidd, thirdMidd;
-  function callAll(index) {
-    firstMidd.callArg(index);
-    secondMidd.callArg(index);
-    mainMidd.callArg(index);
-    thirdMidd.callArg(index);
-  }
   setup(function() {
     obj = Object.create(null);
     mainMidd = sinon.spy();
@@ -126,7 +112,7 @@ suite('6.3. middleware() argument piping', function() {
   teardown(function(){
   });
 
-  test.only('6.3.1 Three arguments', function(done) {
+  test('6.3.1 Three arguments', function(done) {
     var foo = {a: 1};
     var bar = {b: 2};
     obj.create(1, foo, bar).then(function(err){
@@ -136,8 +122,7 @@ suite('6.3. middleware() argument piping', function() {
       assert.ok(thirdMidd.alwaysCalledWith(1, foo, bar), 'thirdMidd should be invoked with these arguments');
       assert.ok(mainMidd.alwaysCalledWith(1, foo, bar), 'mainMidd should be invoked with these arguments');
       done();
-    }, done).then(null, false);
-    callAll(3);
+    }, done).then(null, done);
   });
 });
 
