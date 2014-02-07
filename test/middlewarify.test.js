@@ -158,18 +158,6 @@ suite('3. middleware() argument piping', function() {
       done();
     });
   });
-  test('3.4 Last middleware passes arguments to create callback', function(done) {
-    var obj = Object.create(null);
-    midd.make(obj, 'create', function(cb){
-      cb(null, 1, 2);
-    });
-
-    obj.create().then(function(arg1, arg2) {
-      assert.equal(1, arg1, 'Arg1 should be 1');
-      assert.equal(2, arg2, 'Arg2 should be 2');
-      done();
-    }, done);
-  });
 });
 
 suite('5. Failing middleware cases', function(){
