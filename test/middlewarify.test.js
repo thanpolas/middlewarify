@@ -184,7 +184,7 @@ suite('5. Failing middleware cases', function(){
       assert.instanceOf(err, Error, '"err" should be instanceOf Error');
       assert.equal(err.message, 'an error', 'Error message should match');
       done();
-    });
+    }).then(null, done);
   });
 
   test('5.2 a middleware calls next with an error', function(done){
@@ -195,7 +195,7 @@ suite('5. Failing middleware cases', function(){
       assert.instanceOf(err, Error, '"err" should be instanceOf Error');
       assert.equal(err.message, 'an error', 'Error message should match');
       done();
-    });
+    }).then(null, done);
   });
 
   test('5.3 a failing middleware prevents rest of middleware from executing', function(done){
@@ -206,10 +206,10 @@ suite('5. Failing middleware cases', function(){
     var middSpy = sinon.spy();
     obj.create.use(middSpy);
 
-    obj.create().then(function(){
+    obj.create().then(null, function() {
       assert.notOk(middSpy.called, 'second middleware should not be called');
       done();
-    });
+    }, done).then(null, done);
   });
 });
 
