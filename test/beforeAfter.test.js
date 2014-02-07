@@ -181,7 +181,7 @@ suite('6.5. Failing middleware cases', function(){
 
   test('6.5.1.2 Before middleware throws an error when param is not throw', function(done){
     var custObj = Object.create(null);
-    midd.make(custObj, 'create', {throwErrors: false, beforeAfter: true});
+    midd.make(custObj, 'create', {beforeAfter: true});
 
     custObj.create.before(function() {
       throw new Error('an error');
@@ -195,7 +195,7 @@ suite('6.5. Failing middleware cases', function(){
   });
   test('6.5.1.3 After middleware throws an error when param is not throw', function(done){
     var custObj = Object.create(null);
-    midd.make(custObj, 'create', {throwErrors: false, beforeAfter: true});
+    midd.make(custObj, 'create', {beforeAfter: true});
     custObj.create.after(function(){
       throw new Error('an error');
     });
