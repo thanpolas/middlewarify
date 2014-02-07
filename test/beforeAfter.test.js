@@ -126,7 +126,7 @@ suite('6.3. middleware() argument piping', function() {
   teardown(function(){
   });
 
-  test('6.3.1 Three arguments', function(done) {
+  test.only('6.3.1 Three arguments', function(done) {
     var foo = {a: 1};
     var bar = {b: 2};
     obj.create(1, foo, bar).then(function(err){
@@ -136,7 +136,7 @@ suite('6.3. middleware() argument piping', function() {
       assert.ok(thirdMidd.alwaysCalledWith(1, foo, bar), 'thirdMidd should be invoked with these arguments');
       assert.ok(mainMidd.alwaysCalledWith(1, foo, bar), 'mainMidd should be invoked with these arguments');
       done();
-    }, done);
+    }, done).then(null, false);
     callAll(3);
   });
 });

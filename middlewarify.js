@@ -3,10 +3,10 @@
  */
 
 var __ = require('lodash');
+var Promise = require('bluebird');
 
 var middlewarify = module.exports = {};
 
-var noop = function() {};
 var noopMidd = function(cb) {if (__.isFunction(cb)) cb();};
 
 /** @enum {string} middleware types */
@@ -23,7 +23,6 @@ middlewarify.Type = {
  * @param {string} prop The property to apply the middleware pattern on.
  * @param {Function=} optFinalCb Last middleware to call.
  * @param {Object=} optParams Optional parameters.
- *   @param {boolean=} throwErrors default is true.
  *   @param {boolean=} beforeAfter set to true to add Before/After hooks
  *     instead of the single use hook.
  */
@@ -38,7 +37,6 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
    * @type {Object}
    */
   var defaultParams = {
-    throwErrors: true,
     beforeAfter: false,
   };
 
@@ -77,35 +75,20 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
  * @private
  */
 middlewarify._invokeMiddleware = function(middObj) {
-  var args = Array.prototype.slice.call(arguments, 1);
+  return new Promise(function(resolve, reject) {
+    var args = Array.prototype.slice.call(arguments, 1);
 
-  var doneArgs;
-  var isDone = false;
-  var doneActual = noop;
-  var done = function() {
-    isDone = true;
-    doneArgs = arguments;
-    doneActual.apply(null, arguments);
-  };
-
-  var midds;
-  if (middObj.params.beforeAfter) {
-    midds = Array.prototype.slice.call(middObj.beforeMidds, 0);
-    midds.push(middObj.mainCallback);
-    midds = midds.concat(middObj.afterMidds);
-  } else {
-    midds = Array.prototype.slice.call(middObj.midds, 0);
-    midds.push(middObj.mainCallback);
-  }
-  middlewarify._fetchAndInvoke(midds, args, middObj.params, done);
-
-  return {done: function(fn) {
-    if (isDone) {
-      fn.apply(null, doneArgs);
+    var midds;
+    if (middObj.params.beforeAfter) {
+      midds = Array.prototype.slice.call(middObj.beforeMidds);
+      midds.push(middObj.mainCallback);
+      midds = midds.concat(middObj.afterMidds);
     } else {
-      doneActual = fn;
+      midds = Array.prototype.slice.call(middObj.midds);
+      midds.push(middObj.mainCallback);
     }
-  }};
+    middlewarify._fetchAndInvoke(midds, args, middObj.params, resolve, reject);
+  });
 };
 
 /**
@@ -114,34 +97,56 @@ middlewarify._invokeMiddleware = function(middObj) {
  * @param {Array.<Function>} midds The array with the middleware.
  * @param {Array} args An array of arbitrary arguments, can be empty.
  * @param {Object} params Parameters passed by the user.
- * @param {Function} done Callback.
- * @param {...*} optMiddArgs Arguments passed from the last middleware.
+ * @param {Function} resolve resolving Callback.
+ * @param {Function} reject rejecting Callback.
  * @private
  */
-middlewarify._fetchAndInvoke = function(midds, args, params, done, optMiddArgs) {
-  var lastMiddArgs = optMiddArgs || [];
-
+middlewarify._fetchAndInvoke = function(midds, args, params, resolve, reject) {
   if (0 === midds.length) {
-    lastMiddArgs.unshift(null);
-    return done.apply(null, lastMiddArgs);
+    return resolve();
   }
 
   var midd = midds.shift();
-  try {
-    midd.apply(null, args.concat(function(err){
-      if (err) {
-        done(err);
-      } else {
-        var middArgs = Array.prototype.slice.call(arguments, 1);
-        middlewarify._fetchAndInvoke(midds, args, params, done, middArgs);
-      }
-    }));
-  } catch(ex) {
-    if (params.throwErrors) {
-      throw ex;
+
+  var arity = midd.length;
+  var argsLen = args.length;
+  /** @type {boolean} User defined callback */
+  var hasCb = false;
+
+  // check if there's a callback defined, be explicit expect arity
+  // to be args.length + 1
+  if (arity - argsLen === 1) {
+    hasCb = true;
+  }
+
+  function userCb(err) {
+    if (err) {
+      reject(err);
     } else {
-      done(ex);
+      middlewarify._fetchAndInvoke(midds, args, params, resolve, reject);
     }
+  }
+
+  var invokeArgs = Array.prototype.slice.call(args);
+
+  if (hasCb) {
+    invokeArgs.push(userCb);
+  }
+
+  try {
+    var maybePromise = midd.apply(null, invokeArgs);
+    if (hasCb) {
+      return;
+    }
+
+    if (Promise.is(maybePromise)) {
+      return maybePromise.then(resolve, reject);
+    }
+
+    // it is a synchronous middleware
+    middlewarify._fetchAndInvoke(midds, args, params, resolve, reject);
+  } catch(ex) {
+    reject(ex);
   }
 };
 
