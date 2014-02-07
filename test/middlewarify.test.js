@@ -4,10 +4,10 @@
 
 var sinon  = require('sinon');
 var assert = require('chai').assert;
-
+var Promise = require('bluebird');
 var midd = require('../');
 
-// var noop = function(){};
+var noop = function(){};
 
 suite('1. Basic Tests', function() {
 
@@ -15,18 +15,17 @@ suite('1. Basic Tests', function() {
 
   teardown(function() {});
 
-
   // The numbering (e.g. 1.1.1) has nothing to do with order
   // The purpose is to provide a unique string so specific tests are
   // run by using the mocha --grep "1.1.1" option.
-
 
   test('1.1 Types Test', function() {
     var obj = Object.create(null);
     midd.make(obj, 'create');
     assert.isFunction(obj.create, 'obj.create should be a function');
     assert.isFunction(obj.create.use, 'obj.create.use should be a function');
-    assert.isFunction(obj.create().done, 'obj.create().done should be a function');
+    assert.isObject(obj.create().then, 'obj.create().then should be an Object');
+    assert.ok(Promise.is(obj.create().then), 'obj.create().then is a Promise');
   });
 });
 
@@ -100,7 +99,7 @@ suite('3. middleware() argument piping', function() {
   test('3.1 Three arguments', function(done) {
     var foo = {a: 1};
     var bar = {b: 2};
-    obj.create(1, foo, bar).done(function(err){
+    obj.create(1, foo, bar).then(noop, function(err){
       assert.notOk(err, 'error should not be truthy');
       assert.ok(firstMidd.alwaysCalledWith(1, foo, bar), 'firstMidd should be invoked with these arguments');
       assert.ok(secondMidd.alwaysCalledWith(1, foo, bar), 'secondMidd should be invoked with these arguments');
@@ -137,11 +136,11 @@ suite('4. Final middleware arguments', function(){
       cb(null, 1, 2);
     });
 
-    obj.create().done(function(err, arg1, arg2) {
+    obj.create().then(function(arg1, arg2) {
       assert.equal(1, arg1, 'Arg1 should be 1');
       assert.equal(2, arg2, 'Arg2 should be 2');
       done();
-    });
+    }, done);
   });
 });
 
@@ -159,29 +158,31 @@ suite('5. Failing middleware cases', function(){
     assert.throws(obj.create, Error);
   });
 
-  test('5.1.2 middleware throws an error when param is not throw', function(){
+  test('5.1.2 middleware throws an error when param is not throw', function(done){
     var custObj = Object.create(null);
     midd.make(custObj, 'create', {throwErrors: false});
     custObj.create.use(function(){
       throw new Error('an error');
     });
-    custObj.create().done(function(err){
+    custObj.create().then(noop, function(err){
       assert.instanceOf(err, Error, '"err" should be instanceOf Error');
       assert.equal(err.message, 'an error', 'Error message should match');
+      done();
     });
   });
 
-  test('5.2 a middleware calls next with an error', function(){
+  test('5.2 a middleware calls next with an error', function(done){
     obj.create.use(function(next){
       next(new Error('an error'));
     });
-    obj.create().done(function(err){
+    obj.create().then(noop, function(err){
       assert.instanceOf(err, Error, '"err" should be instanceOf Error');
       assert.equal(err.message, 'an error', 'Error message should match');
+      done();
     });
   });
 
-  test('5.3 a failing middleware prevents rest of middleware from executing', function(){
+  test('5.3 a failing middleware prevents rest of middleware from executing', function(done){
     obj.create.use(function(next){
       next(new Error('an error'));
     });
@@ -189,8 +190,9 @@ suite('5. Failing middleware cases', function(){
     var middSpy = sinon.spy();
     obj.create.use(middSpy);
 
-    obj.create().done(function(){
+    obj.create().then(function(){
       assert.notOk(middSpy.called, 'second middleware should not be called');
+      done();
     });
   });
 });

@@ -24,6 +24,8 @@ middlewarify.Type = {
  * @param {Function=} optFinalCb Last middleware to call.
  * @param {Object=} optParams Optional parameters.
  *   @param {boolean=} throwErrors default is true.
+ *   @param {boolean=} beforeAfter set to true to add Before/After hooks
+ *     instead of the single use hook.
  */
 middlewarify.make = function(obj, prop, optFinalCb, optParams) {
 

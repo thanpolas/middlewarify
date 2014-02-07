@@ -3,10 +3,11 @@
  */
 var sinon  = require('sinon');
 var assert = require('chai').assert;
+var Promise = require('bluebird');
 
 var midd = require('../');
 
-// var noop = function(){};
+var noop = function(){};
 
 suite('6. Before / After middleware', function() {
 
@@ -29,7 +30,8 @@ suite('6. Before / After middleware', function() {
     assert.isFunction(obj.create.before, 'obj.create.before should be a function');
     assert.isFunction(obj.create.after, 'obj.create.after should be a function');
     assert.notProperty(obj.create, 'use', 'obj.create should NOT have a use fn');
-    assert.isFunction(obj.create().done, 'obj.create().done should be a function');
+    assert.isObject(obj.create().then, 'obj.create().then should be an Object');
+    assert.ok(Promise.is(obj.create().then), 'obj.create().then is a Promise');
   });
 });
 
@@ -127,14 +129,14 @@ suite('6.3. middleware() argument piping', function() {
   test('6.3.1 Three arguments', function(done) {
     var foo = {a: 1};
     var bar = {b: 2};
-    obj.create(1, foo, bar).done(function(err){
+    obj.create(1, foo, bar).then(function(err){
       assert.notOk(err, 'error should not be truthy');
       assert.ok(firstMidd.alwaysCalledWith(1, foo, bar), 'firstMidd should be invoked with these arguments');
       assert.ok(secondMidd.alwaysCalledWith(1, foo, bar), 'secondMidd should be invoked with these arguments');
       assert.ok(thirdMidd.alwaysCalledWith(1, foo, bar), 'thirdMidd should be invoked with these arguments');
       assert.ok(mainMidd.alwaysCalledWith(1, foo, bar), 'mainMidd should be invoked with these arguments');
       done();
-    });
+    }, done);
     callAll(3);
   });
 });
@@ -146,11 +148,11 @@ suite('6.4. Final middleware arguments', function(){
       cb(null, 1, 2);
     }, {beforeAfter: true});
 
-    obj.create().done(function(err, arg1, arg2) {
+    obj.create().then(function(arg1, arg2) {
       assert.equal(1, arg1, 'Arg1 should be 1');
       assert.equal(2, arg2, 'Arg2 should be 2');
       done();
-    });
+    }, done);
   });
 });
 
@@ -177,7 +179,7 @@ suite('6.5. Failing middleware cases', function(){
   });
 
 
-  test('6.5.1.2 Before middleware throws an error when param is not throw', function(){
+  test('6.5.1.2 Before middleware throws an error when param is not throw', function(done){
     var custObj = Object.create(null);
     midd.make(custObj, 'create', {throwErrors: false, beforeAfter: true});
 
@@ -185,43 +187,47 @@ suite('6.5. Failing middleware cases', function(){
       throw new Error('an error');
     });
 
-    custObj.create().done(function(err){
+    custObj.create().then(noop, function(err){
       assert.instanceOf(err, Error, '"err" should be instanceOf Error');
       assert.equal(err.message, 'an error', 'Error message should match');
-    });
+      done();
+    }, done);
   });
-  test('6.5.1.3 After middleware throws an error when param is not throw', function(){
+  test('6.5.1.3 After middleware throws an error when param is not throw', function(done){
     var custObj = Object.create(null);
     midd.make(custObj, 'create', {throwErrors: false, beforeAfter: true});
     custObj.create.after(function(){
       throw new Error('an error');
     });
-    custObj.create().done(function(err){
+    custObj.create().then(noop, function(err){
       assert.instanceOf(err, Error, '"err" should be instanceOf Error');
       assert.equal(err.message, 'an error', 'Error message should match');
-    });
+      done();
+    }, done);
   });
 
-  test('6.5.2 a Before middleware calls next with an error', function(){
+  test('6.5.2 a Before middleware calls next with an error', function(done){
     obj.create.before(function(next){
       next(new Error('an error'));
     });
-    obj.create().done(function(err){
+    obj.create().then(noop, function(err){
       assert.instanceOf(err, Error, '"err" should be instanceOf Error');
       assert.equal(err.message, 'an error', 'Error message should match');
-    });
+      done();
+    }, done);
   });
-  test('6.5.2.1 a After middleware calls next with an error', function(){
+  test('6.5.2.1 a After middleware calls next with an error', function(done){
     obj.create.after(function(next){
       next(new Error('an error'));
     });
-    obj.create().done(function(err){
+    obj.create().then(noop, function(err) {
       assert.instanceOf(err, Error, '"err" should be instanceOf Error');
       assert.equal(err.message, 'an error', 'Error message should match');
-    });
+      done();
+    }, done);
   });
 
-  test('6.5.3 a failing Before middleware prevents rest of middleware from executing', function(){
+  test('6.5.3 a failing Before middleware prevents rest of middleware from executing', function(done){
     obj.create.before(function(next){
       next(new Error('an error'));
     });
@@ -231,12 +237,13 @@ suite('6.5. Failing middleware cases', function(){
     obj.create.before(middSpy);
     obj.create.after(afterMiddSpy);
 
-    obj.create().done(function(){
+    obj.create().then(noop, function(){
       assert.notOk(middSpy.called, 'second Before middleware should not be called');
       assert.notOk(afterMiddSpy.called, 'After middleware should not be called');
+      done();
     });
   });
-  test('6.5.4 a failing After middleware prevents rest of middleware from executing', function(){
+  test('6.5.4 a failing After middleware prevents rest of middleware from executing', function(done){
     obj.create.after(function(next){
       next(new Error('an error'));
     });
@@ -244,8 +251,9 @@ suite('6.5. Failing middleware cases', function(){
     var middSpy = sinon.spy();
     obj.create.after(middSpy);
 
-    obj.create().done(function(){
+    obj.create().then(noop, function(){
       assert.notOk(middSpy.called, 'second after middleware should not be called');
+      done();
     });
   });
 
