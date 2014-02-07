@@ -72,26 +72,33 @@ suite('2. middleware.use() Sequence of invocation Synchronous', function() {
 
 suite('2.10 middleware.use() Sequence of invocation Asynchronous', function() {
   var obj, lastMidd, firstMidd, secondMidd, thirdMidd;
+  var spyLastMidd, spyFirstMidd, spySecondMidd, spyThirdMidd;
+
   setup(function() {
+    spyLastMidd = sinon.spy();
+    spyFirstMidd = sinon.spy();
+    spySecondMidd = sinon.spy();
+    spyThirdMidd = sinon.spy();
+
     obj = Object.create(null);
-    lastMidd = function(next) {next();};
-    firstMidd = function(next) {next();};
-    secondMidd = function(next) {next();};
-    thirdMidd = function(next) {next();};
+    lastMidd = function(next) {spyLastMidd();next();};
+    firstMidd = function(next) {spyFirstMidd();next();};
+    secondMidd = function(next) {spySecondMidd();next();};
+    thirdMidd = function(next) {spyThirdMidd();next();};
     midd.make(obj, 'create', lastMidd);
   });
 
   teardown(function(){
     obj.create();
-    assert.ok(firstMidd.calledOnce, 'firstMidd should be called only once');
-    assert.ok(secondMidd.calledOnce, 'secondMidd should be called only once');
-    assert.ok(thirdMidd.calledOnce, 'thirdMidd should be called only once');
-    assert.ok(lastMidd.calledOnce, 'lastMidd should be called only once');
+    assert.ok(spyFirstMidd.calledOnce, 'firstMidd should be called only once');
+    assert.ok(spySecondMidd.calledOnce, 'secondMidd should be called only once');
+    assert.ok(spyThirdMidd.calledOnce, 'thirdMidd should be called only once');
+    assert.ok(spyLastMidd.calledOnce, 'lastMidd should be called only once');
 
-    assert.ok(firstMidd.calledBefore(secondMidd), 'firstMidd should be called before secondMidd');
-    assert.ok(secondMidd.calledAfter(firstMidd), 'secondMidd should be called after firstMidd');
-    assert.ok(thirdMidd.calledAfter(secondMidd), 'thirdMidd should be called after secondMidd');
-    assert.ok(lastMidd.calledAfter(thirdMidd), 'lastMidd should be called after thirdMidd');
+    assert.ok(spyFirstMidd.calledBefore(spySecondMidd), 'firstMidd should be called before secondMidd');
+    assert.ok(spySecondMidd.calledAfter(spyFirstMidd), 'secondMidd should be called after firstMidd');
+    assert.ok(spyThirdMidd.calledAfter(spySecondMidd), 'thirdMidd should be called after secondMidd');
+    assert.ok(spyLastMidd.calledAfter(spyThirdMidd), 'lastMidd should be called after thirdMidd');
 
   });
 
