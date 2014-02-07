@@ -15,11 +15,9 @@ suite('6. Before / After middleware', function() {
 
   teardown(function() {});
 
-
   // The numbering (e.g. 1.1.1) has nothing to do with order
   // The purpose is to provide a unique string so specific tests are
   // run by using the mocha --grep "1.1.1" option.
-
 
   test('6.1 Types Test', function() {
     var obj = Object.create(null);
@@ -234,6 +232,4 @@ suite('6.5. Failing middleware cases', function(){
       done();
     }).then(null, done);
   });
-
 });
-

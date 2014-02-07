@@ -115,5 +115,4 @@ suite('7. Promise Interface', function() {
       }).then(null, done);
     });
   });
-
 });
