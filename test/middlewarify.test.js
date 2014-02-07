@@ -24,8 +24,8 @@ suite('1. Basic Tests', function() {
     midd.make(obj, 'create');
     assert.isFunction(obj.create, 'obj.create should be a function');
     assert.isFunction(obj.create.use, 'obj.create.use should be a function');
-    assert.isObject(obj.create().then, 'obj.create().then should be an Object');
-    assert.ok(Promise.is(obj.create().then), 'obj.create().then is a Promise');
+    assert.isFunction(obj.create().then, 'obj.create().then should be a Function');
+    assert.ok(Promise.is(obj.create()), 'obj.create().then is a Promise');
   });
 });
 
