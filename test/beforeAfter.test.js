@@ -30,8 +30,8 @@ suite('6. Before / After middleware', function() {
     assert.isFunction(obj.create.before, 'obj.create.before should be a function');
     assert.isFunction(obj.create.after, 'obj.create.after should be a function');
     assert.notProperty(obj.create, 'use', 'obj.create should NOT have a use fn');
-    assert.isObject(obj.create().then, 'obj.create().then should be an Object');
-    assert.ok(Promise.is(obj.create().then), 'obj.create().then is a Promise');
+    assert.isFunction(obj.create().then, 'obj.create().then should be a Function');
+    assert.ok(Promise.is(obj.create()), 'obj.create() is a Promise');
   });
 });
 
