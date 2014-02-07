@@ -139,7 +139,11 @@ middlewarify._fetchAndInvoke = function(midds, args, params, resolve, reject) {
     }
 
     if (Promise.is(maybePromise)) {
-      return maybePromise.then(resolve, reject);
+      return maybePromise.then(function() {
+        middlewarify._fetchAndInvoke(midds, args, params, resolve, reject);
+      }, function(err) {
+        reject(err);
+      });
     }
 
     // it is a synchronous middleware

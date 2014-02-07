@@ -10,8 +10,7 @@ var midd = require('../');
 var noop = function(){};
 
 suite('7. Promise Interface', function() {
-
-  setup(function() {});
+  var thing;
 
   teardown(function() {});
 
@@ -21,71 +20,100 @@ suite('7. Promise Interface', function() {
   // run by using the mocha --grep "1.1.1" option.
 
 
-  function applyTests(num, middMethod, invokeMethod) {
+  function applyTests(num, middMethod, thing) {
+    setup(function() {
+      var middOpts = {};
+
+      if (middMethod !== 'use') {
+        middOpts = {beforeAfter: true};
+      }
+      thing = Object.create(null);
+      midd.make(thing, 'create', function() {
+        return Promise.resolve();
+      }, middOpts);
+
+    });
+
     test('7.' + num + '.1 accepts a promise', function(done) {
-      middMethod(function() {
+      thing.create[middMethod](function() {
         return new Promise(function(resolve) {
           resolve();
         });
       });
-      invokeMethod().then(done, done);
+      thing.create().then(done, done);
     });
     test('7.' + num + '.2 propagates error', function(done) {
-      middMethod(function() {
+      thing.create[middMethod](function() {
         return new Promise(function(resolve, reject) {
           reject();
         });
       });
-      invokeMethod().then(noop, done.bind(null, null));
+      thing.create().then(noop, done.bind(null, null));
+
     });
     test('7.' + num + '.3 propagates error message', function(done) {
-      middMethod(function() {
+      thing.create[middMethod](function() {
         return new Promise(function(resolve, reject) {
           reject('Error');
         });
       });
-      invokeMethod().then(noop, function(err) {
+      thing.create().then(null, function(err) {
         assert.equal(err, 'Error');
         done();
       }).then(null, done);
     });
     test('7.' + num + '.4 arguments propagate', function(done) {
-      middMethod(function(arg1) {
+      thing.create[middMethod](function(arg1) {
         return new Promise(function(resolve) {
           assert.equal(arg1, 1);
           resolve();
         });
       });
-      middMethod(function(arg1) {
+      thing.create[middMethod](function(arg1) {
         return new Promise(function(resolve) {
           assert.equal(arg1, 1);
           resolve();
         });
       });
 
-      invokeMethod(1).then(done, done);
+      thing.create(1).then(done, done);
     });
   }
 
   suite('7.1 Middleware with use()', function() {
-    var obj = Object.create(null);
-    midd.make(obj, 'create', function() {
-      return Promise.resolve();
-    });
-    applyTests(1, obj.create.use, obj.create);
+    applyTests(1, 'use', thing);
   });
   suite('7.2 Middleware with before()', function() {
-    var obj = Object.create(null);
-    midd.make(obj, 'create', function() {
+    var thing = Object.create(null);
+    midd.make(thing, 'create', function() {
       return Promise.resolve();
     }, {beforeAfter: true});
-    applyTests(1, obj.create.before, obj.create);
+    applyTests(2, 'before', thing);
   });
   suite('7.3 Middleware with after()', function() {
-    var obj = Object.create(null);
-    midd.make(obj, 'create', function() {
+    var thing = Object.create(null);
+    midd.make(thing, 'create', function() {
       return Promise.resolve();
     }, {beforeAfter: true});
-    applyTests(1, obj.create.after, obj.create);
+    applyTests(3, 'after', thing);
   });
+  suite('7.8 Middleware with use() check', function() {
+    var thing = Object.create(null);
+    midd.make(thing, 'create', function() {
+      return Promise.resolve();
+    });
+
+    test('7.8.3 propagates error message', function(done) {
+      thing.create.use(function() {
+        return new Promise(function(resolve, reject) {
+          reject('Error');
+        });
+      });
+      thing.create().then(null, function(err) {
+        assert.equal(err, 'Error');
+        done();
+      }).then(null, done);
+    });
+  });
+
 });
