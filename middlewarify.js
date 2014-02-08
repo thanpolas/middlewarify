@@ -77,6 +77,8 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
 middlewarify._invokeMiddleware = function(middObj) {
   var args = Array.prototype.slice.call(arguments, 1);
   return new Promise(function(resolve, reject) {
+    var deferred = Promise.defer();
+    deferred.promise.then(resolve, reject);
     var midds;
     if (middObj.params.beforeAfter) {
       midds = Array.prototype.slice.call(middObj.beforeMidds);
@@ -86,7 +88,7 @@ middlewarify._invokeMiddleware = function(middObj) {
       midds = Array.prototype.slice.call(middObj.midds);
       midds.push(middObj.mainCallback);
     }
-    middlewarify._fetchAndInvoke(midds, args, middObj.params, resolve, reject);
+    middlewarify._fetchAndInvoke(midds, args, deferred);
   });
 };
 
@@ -95,14 +97,12 @@ middlewarify._invokeMiddleware = function(middObj) {
  *
  * @param {Array.<Function>} midds The array with the middleware.
  * @param {Array} args An array of arbitrary arguments, can be empty.
- * @param {Object} params Parameters passed by the user.
- * @param {Function} resolve resolving Callback.
- * @param {Function} reject rejecting Callback.
+ * @param {Promise.Defer} deferred Deferred object.
  * @private
  */
-middlewarify._fetchAndInvoke = function(midds, args, params, resolve, reject) {
-  if (0 === midds.length) {
-    return resolve();
+middlewarify._fetchAndInvoke = function(midds, args, deferred) {
+  if (midds.length === 0) {
+    return deferred.resolve();
   }
 
   var midd = midds.shift();
@@ -120,9 +120,9 @@ middlewarify._fetchAndInvoke = function(midds, args, params, resolve, reject) {
 
   function userCb(err) {
     if (err) {
-      reject(err);
+      deferred.reject(err);
     } else {
-      middlewarify._fetchAndInvoke(midds, args, params, resolve, reject);
+      middlewarify._fetchAndInvoke(midds, args, deferred);
     }
   }
 
@@ -132,24 +132,35 @@ middlewarify._fetchAndInvoke = function(midds, args, params, resolve, reject) {
     invokeArgs.push(userCb);
   }
 
+  middlewarify._invoke(midd, invokeArgs, function(err) {
+    if (err) {
+      return deferred.reject(err);
+    }
+    if (!hasCb) {
+      middlewarify._fetchAndInvoke(midds, args, deferred);
+    }
+  });
+};
+
+/**
+ * The actual invocation of the middleware happens here.
+ *
+ * @param {Function} midd The middleware to invoke.
+ * @param {Array} invokeArgs Arguments to invoke middleware with.
+ * @param {Function(Error=)} cb callback.
+ * @private
+ */
+middlewarify._invoke = function(midd, invokeArgs, cb) {
   try {
     var maybePromise = midd.apply(null, invokeArgs);
-    if (hasCb) {
-      return;
-    }
-
     if (Promise.is(maybePromise)) {
-      return maybePromise.then(function() {
-        middlewarify._fetchAndInvoke(midds, args, params, resolve, reject);
-      }, function(err) {
-        reject(err);
+      return maybePromise.then(cb, function(err) {
+        cb(err || new Error());
       });
     }
-
-    // it is a synchronous middleware
-    middlewarify._fetchAndInvoke(midds, args, params, resolve, reject);
+    cb();
   } catch(ex) {
-    reject(ex);
+    cb(ex);
   }
 };
 
