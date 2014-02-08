@@ -45,30 +45,27 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
     midd5 = sinon.spy();
     midd6 = sinon.spy();
     fnPayload = sinon.spy();
-    midd.make(obj, 'create', fnPayload, {
-      beforeAfter: true,
-    });
+    midd.make(obj, 'create', fnPayload, {beforeAfter: true});
   });
 
-  teardown(function() {
-    obj.create();
+  teardown(function(done) {
+    obj.create().then(function() {
+      assert.ok(midd1.calledOnce, 'midd1 called only once, called: ' + midd1.callCount);
+      assert.ok(midd2.calledOnce, 'midd2 called only once, called: ' + midd2.callCount);
+      assert.ok(midd3.calledOnce, 'midd3 called only once, called: ' + midd3.callCount);
+      assert.ok(midd4.calledOnce, 'midd4 called only once, called: ' + midd4.callCount);
+      assert.ok(midd5.calledOnce, 'midd5 called only once, called: ' + midd5.callCount);
+      assert.ok(midd6.calledOnce, 'midd6 called only once, called: ' + midd6.callCount);
+      assert.ok(fnPayload.calledOnce, 'fnPayload called only once');
 
-    assert.ok(midd1.calledOnce, 'midd1 called only once');
-    assert.ok(midd2.calledOnce, 'midd2 called only once');
-    assert.ok(midd3.calledOnce, 'midd3 called only once');
-    assert.ok(midd4.calledOnce, 'midd4 called only once');
-    assert.ok(midd5.calledOnce, 'midd5 called only once');
-    assert.ok(midd6.calledOnce, 'midd6 called only once');
-    assert.ok(fnPayload.calledOnce, 'fnPayload called only once');
-
-
-
-    assert.ok(midd1.calledBefore(midd2), '"midd1" called before "midd2"');
-    assert.ok(midd2.calledBefore(midd3), '"midd2" called before "midd3"');
-    assert.ok(midd3.calledBefore(fnPayload), '"midd3" called before "fnPayload"');
-    assert.ok(fnPayload.calledBefore(midd4), '"fnPayload" called before "midd4"');
-    assert.ok(midd4.calledBefore(midd5), '"midd4" called before "midd5"');
-    assert.ok(midd5.calledBefore(midd6), '"midd5" called before "midd6"');
+      assert.ok(midd1.calledBefore(midd2), '"midd1" called before "midd2"');
+      assert.ok(midd2.calledBefore(midd3), '"midd2" called before "midd3"');
+      assert.ok(midd3.calledBefore(fnPayload), '"midd3" called before "fnPayload"');
+      assert.ok(fnPayload.calledBefore(midd4), '"fnPayload" called before "midd4"');
+      assert.ok(midd4.calledBefore(midd5), '"midd4" called before "midd5"');
+      assert.ok(midd5.calledBefore(midd6), '"midd5" called before "midd6"');
+      done();
+    }, done).then(null, done);
   });
 
   test('6.2.1 Multiple arguments', function() {
@@ -91,7 +88,6 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
     obj.create.before([midd1, midd2], midd3);
     obj.create.after([midd4, midd5], midd6);
   });
-
 });
 
 suite('6.3. middleware() argument piping', function() {
