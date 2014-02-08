@@ -1,6 +1,6 @@
 # Middlewarify
 
-Apply the middleware pattern, easy. You can add two types of middleware, a single queue type using the keyword `use()` or a Before/After type using `before()` and `after()` hooks.
+Middleware pattern implementation, robust, easy, fast. You can add two types of middleware, a single queue type using the keyword `use()` or a Before/After type using `before()` and `after()` hooks. All middleware accept promises or vanilla callbacks and final resolution is done using the Promises/A+ spec.
 
 [![Build Status](https://travis-ci.org/thanpolas/middlewarify.png)](https://travis-ci.org/thanpolas/middlewarify)
 
@@ -44,16 +44,26 @@ var tasks = require('./tasks');
 
 // add middleware to the 'create' operation
 
-tasks.create.use(function(next){
+tasks.create.use(function(){
   console.log('middleware 1');
-  next();
 });
 
 // add another middleware to the 'create' operation
+// this time use a callback to indicate asynchronicity
 tasks.create.use(function(next){
   console.log('middleware 2');
   next();
 });
+
+// add a third middleware to the 'create' operation
+// this time use a promise to indicate asynchronicity
+tasks.create.use(function(){
+  return new Promise(resolve, reject) {
+    console.log('middleware 3');
+    resolve();
+  });
+});
+
 
 ```
 
@@ -62,17 +72,26 @@ tasks.create.use(function(next){
 ```js
 // ... Invoking them all together
 tasks.create();
+// prints
+// middleware 1
+// middleware 2
+// middleware 3
+// createTask Final Fn to be invoked
 ```
 
-Invoking the middleware will return an object with a `done` property which you can use to setup your callbacks:
+Invoking the middleware will return a Promise, use the `then` function to determine all middleware including the final function invoked successfully:
 
 ```js
-tasks.create().done(function(err) {
+tasks.create().then(function() {
   // all middleware finished.
+}, function(err) {
+  // Middleware failed
 });
 ```
 
 #### Using the Before / After Middleware type
+
+To use the Before/After hook types all you need to do is pass an option to Middlewarify's `make()` method.
 
 ```js
 var midd = require('middlewarify');
@@ -107,12 +126,13 @@ tasks.create.after(function(next) {
 /** ... */
 
 // invoke all middleware
-tasks.create().done(function(err){
-    // at this point all middleware have finished.
+tasks.create().then(function(){
+  // at this point all middleware have finished.
+}, function(err) {
+  // handle error
 });
 
 ```
-
 
 ## Middlewarify Methods
 
@@ -126,39 +146,21 @@ var crud = {};
 middlewarify.make(crud, 'create');
 ```
 
-This example has created the Middleware Container `create` in the object `crud`. `create.crud` is a function that will invoke all the middleware.
+This example has created the Middleware Container `create` in the object `crud`. `crud.create()` is a function that will invoke all the middleware.
 
-You can add a third argument, the `optMainCallback`, this is the main payload of your middleware. `optOptions` is one more argument you can pass to Middlewarify to define behavior. Both `optOptions` and `optMainCallback` are optional and can be interswitched, i.e. you can pass options as a third argument, read on for examples and what are the available options.
+You can pass a third argument, the `optMainCallback`, a Function. This can be considered the main payload of your middleware. 
+
+`optOptions` defines behavior. Both `optOptions` and `optMainCallback` are optional and can be interswitched, i.e. you can pass options as a third argument, read on for examples and what are the available options.
 
 #### make() Options
 
 `make()` accepts the following options:
 
-* `throwErrors` type: **Boolean**, default: `true` If set to false all thrown errors will be suppressed and available only through the `.done()` method.
 * `beforeAfter` type: **Boolean**, default: `false` If set to true the Before/After hooks will be used instead of the single queue `use` hook, which is the default, view the [example displayed above](#using-the-before--after-middleware-type).
-
-##### `throwErrors` Example
-
-```js
-
-// don't throw errors
-var crud = {};
-middlewarify.make(crud, 'create', {throwErrors: false});
-
-crud.create.use(function(){
-    throw new Error('an error');
-});
-
-// executing the middleware will not throw an error, the exception
-// will be available only through the .done() callback
-crud.create().done(function(err) {
-    err.message === 'an error'; // true
-});
-```
 
 #### The use(fn) Method
 
-The Middleware Container by default exposes a `use` method so you can add any number of middleware. `use()` accepts any number of parameters as long they are of type Function or Arrays of Functions. When the Before/After flag is enabled `use` is no longer there and instead you get `before` and `after` methods to hook your middleware. All three hook types accept the same argument types and patterns as described bellow.
+The Middleware Container by default exposes a `use` hook so you can add any number of middleware. `use()` accepts any number of parameters as long they are of type Function or Array of Functions. When the Before/After flag is enabled `use` is no longer there and instead you get `before` and `after` hooks. All three hook types accept the same argument types and patterns as described bellow.
 
 ```js
 // create the Middleware Container
@@ -182,15 +184,47 @@ In the above example we added 4 middleware before the final method `fnFinal` wil
 
 #### Middleware Arguments
 
-All middleware gets invoked with a callback so it can pass control to the next middleware.
+All middleware get invoked with the arguments that the *Middleware Container* was invoked with. The same number or arguments, the exact same references.
 
-following up on the previous examples:
+```js
+app.connect.use(function(req) {
+    req.a === 1; // true
+    req.a++;
+});
+app.connect.use(function(req) {
+    req.a === 2; // true
+});
+
+app.connect({a:1});
+
+```
+
+#### Asynchronous Middleware Using Promises
+
+You can return a Promise from your middleware and Middlewarify will wait for its resolution before passing control to the next one.
+
+```js
+crud.create.before(function() {
+    return new Promise(resolve, reject) {
+        // do something async...
+        resolve();
+    });
+});
+```
+
+#### Asynchronous Middleware Using Callbacks
+
+Middlewarify determines the arity of your middleware and if it detects that you have one, and only one, more argument that what the *Middleware Container* was invoked with, then it treats it as a callback and you need to invoke it to pass control to the next middleware.
 
 ```js
 crud.create.use(function(next) {
-    // do stuff
+    // Since we expect "create" to be invoked without any arguments 
+    // then Middlewarify assumes this middleware is async and expects
+    // you to invoked "next" 
     next();
 });
+
+crud.create(); // no arguments passed
 ```
 
 The first argument of the `next()` callback is the **error indicator**, any truthy value passed will be considered an error and stop executing the middleware chain right there and then.
@@ -232,106 +266,19 @@ crud.create.use(function(arg1, arg2, next) {
 
 #### Getting the Middleware Results and Error Handling
 
-Because any argument passed to the Middleware Container (`crud.create(arg1, arg2, fn1);`) will get piped to the middleware, we cannot add a callback within these arguments. Thus the function `.done()` is provided, so you can check for errors or results.
+When invoked, the *Middleware Container* returns a promise, with it you can check for ultimate execution outcome.
 
 ```js
-crud.create(arg1, arg2, fn1).done(function(err) {
-    if (err) {
-        return console.error(err);
-    }
+crud.create(arg1, arg2, fn1).then(function() {
     // all cool...
+}, function(err) {
+    // ops, handle error
+    return console.error(err);
 });
 ```
-
-The only way to pass arguments back to the callback of the `.done()` method is through the *Final Callback* that is defined in the `make()` method.
-
-```js
-var crud = {};
-var lastMiddlware = function(done) {
-    // since this is the final middleware, we name the
-    // callback "done" instead of "next"
-    // and we invoke it with a null value as the first
-    // argument to indicate there were no errors.
-    done(null, 'one', 'two');
-});
-
-// now create the Middleware Container
-middlewarify.make(crud, 'create', lastMiddlware);
-
-// Invoke the Middleware Container
-crud.create().done(function(err, arg1, arg2) {
-  if (err) { /* tough love */ }
-
-  arg1 === 'one'; // true
-  arg2 === 'two'; // true
-});
-```
-
-> **Beware of Error Handling** Middlewarify will catch all thrown errors from your middleware. They will be piped to the `.done()` method. So if any of your middleware functions throws an error, it will not be visible unless you setup the `.done()` callback.
-
-#### Why a .done() function
-
-The trailling `.done()` function will notify you of the ultimate outcome of the middleware execution. The problem for having the callback as an argument when invoking the middleware with `tasks.create()` is that there is no way to determine if that is the callback to call when all middleware are done, or an argument that should be passed to all middleware.
-
-This becomes more aparent when using the Before/After feature of Middlewarify which binds a `before` and `after` functions instead of `use`.
-
-```js
-
-var midd = require('middlewarify');
-
-var tasks = module.exports = {};
-
-// this is the main callback of your middleware.
-function createTask(cb, done) {
-  anAsyncOp(function(err, result) {
-    if (err) {
-        cb(err);
-        done(err);
-        return;
-    }
-
-    // cb is the anon function passed as argument when the middleware will be
-    // invoked, done will signal to Middlewarify that execution has completed.
-    cb(null, result);
-    done(null, result);
-  });
-}
-
-// Make the'create' Middleware Container using before/after hooks
-midd.make(tasks, 'create', createTask, {beforeAfter: true});
-
-/** ... */
-
-// add a before hook
-tasks.create.before(function(cb, next) {
-    // ...
-    next();
-});
-
-// add an after hook
-tasks.create.after(function(cb, result, next) {
-    // do something with "result"
-    next();
-});
-
-/** ... */
-
-// invoke all middleware
-tasks.create(function(err, result, done){
-    // this is invoked by the "createTask" function and BEFORE any of the
-    // "after" middleware are executed.
-
-    done();
-}).done(function(err, fn, result){
-    // the "fn" is the anon function defined as an argument to tasks.create()!
-
-    // at this point all middleware have finished.
-});
-
-```
-
-
 ## Release History
+- **v0.2.0**, *08 Feb 2014*
+    - Major API change, introduced Promises to API.
 - **v0.1.0**, *28 Jan 2014*
     - Added Before/After feature
     - Reorganized tests
