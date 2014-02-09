@@ -30,6 +30,7 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
 
   var middObj = Object.create(null);
   middObj.mainCallback = noopMidd;
+  middObj.mainCallback.isMain = true;
 
   /**
    * The default parameters object.
@@ -42,6 +43,7 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
 
   if (__.isFunction(optFinalCb)) {
     middObj.mainCallback = optFinalCb;
+    middObj.mainCallback.isMain = true;
   }
 
   var params;
@@ -88,7 +90,9 @@ middlewarify._invokeMiddleware = function(middObj) {
       midds = Array.prototype.slice.call(middObj.midds);
       midds.push(middObj.mainCallback);
     }
-    middlewarify._fetchAndInvoke(midds, args, deferred);
+    middlewarify._fetchAndInvoke(midds, args, deferred, {
+      mainCallbackReturnValue: null,
+    });
   });
 };
 
@@ -98,16 +102,20 @@ middlewarify._invokeMiddleware = function(middObj) {
  * @param {Array.<Function>} midds The array with the middleware.
  * @param {Array} args An array of arbitrary arguments, can be empty.
  * @param {Promise.Defer} deferred Deferred object.
+ * @param {Object} store A map, helper for main cb return value.
  * @private
  */
-middlewarify._fetchAndInvoke = function(midds, args, deferred) {
+middlewarify._fetchAndInvoke = function(midds, args, deferred, store) {
   if (midds.length === 0) {
-    return deferred.resolve();
+    return deferred.resolve(store.mainCallbackReturnValue);
   }
 
   var midd = midds.shift();
-  middlewarify._invoke(midd, args).then(function() {
-    middlewarify._fetchAndInvoke(midds, args, deferred);
+  middlewarify._invoke(midd, args).then(function(val) {
+    if (midd.isMain) {
+      store.mainCallbackReturnValue = val;
+    }
+    middlewarify._fetchAndInvoke(midds, args, deferred, store);
   }, deferred.reject.bind(deferred));
 };
 
@@ -123,7 +131,7 @@ middlewarify._invoke = function(midd, invokeArgs) {
   return new Promise(function(resolve, reject) {
     var maybePromise = midd.apply(null, invokeArgs);
     if (!maybePromise || typeof maybePromise.then !== 'function') {
-      resolve();
+      resolve(maybePromise);
     } else {
       maybePromise.then(resolve, reject);
     }

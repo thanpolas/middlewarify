@@ -173,7 +173,7 @@ suite('3. middleware() argument piping', function() {
 
 suite('4 middleware returning values', function() {
   function invoke(returnValue, done) {
-    var lastMidd = function() {return returnValue;};
+    var lastMidd = function() {};
     var firstMidd = function() {return returnValue;};
     var obj = Object.create(null);
     midd.make(obj, 'create', lastMidd);
@@ -257,8 +257,7 @@ suite('3.5.2 Main Callback arguments pipes to final promise', function() {
     var secondMidd = sinon.spy();
     var thirdMidd = sinon.spy();
     midd.make(obj, 'create', mainMidd);
-    obj.create.before(firstMidd, secondMidd);
-    obj.create.after(thirdMidd);
+    obj.create.use(firstMidd, secondMidd, thirdMidd);
   }
   test('3.5.2.1 Using a promise', function(done) {
     var prom = new Promise(function(resolve){
