@@ -239,6 +239,8 @@ crud.create(arg1, arg2, fn1).then(function() {
 });
 ```
 ## Release History
+- **v0.3.0**, *09 Feb 2014*
+    - Removed callback API, 100% Promise based API now.
 - **v0.2.0**, *08 Feb 2014*
     - Major API change, introduced Promises to API.
 - **v0.1.0**, *28 Jan 2014*
