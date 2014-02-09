@@ -246,3 +246,40 @@ suite('5. Failing middleware cases', function(){
   });
 });
 
+suite('3.5.2 Main Callback arguments pipes to final promise', function() {
+  var obj;
+  function invoke(returnValue) {
+    obj = Object.create(null);
+    var mainMidd = function() {
+      return returnValue;
+    };
+    var firstMidd = sinon.spy();
+    var secondMidd = sinon.spy();
+    var thirdMidd = sinon.spy();
+    midd.make(obj, 'create', mainMidd);
+    obj.create.before(firstMidd, secondMidd);
+    obj.create.after(thirdMidd);
+  }
+  test('3.5.2.1 Using a promise', function(done) {
+    var prom = new Promise(function(resolve){
+      resolve('value');
+    });
+    invoke(prom);
+
+    obj.create().then(function(val) {
+      assert.equal(val, 'value');
+    }).then(done, done);
+  });
+  test('3.5.2.2 Using a string', function(done) {
+    invoke('value');
+    obj.create().then(function(val) {
+      assert.equal(val, 'value');
+    }).then(done, done);
+  });
+  test('3.5.2.3 Using a number', function(done) {
+    invoke(9);
+    obj.create().then(function(val) {
+      assert.equal(val, 9);
+    }).then(done, done);
+  });
+});

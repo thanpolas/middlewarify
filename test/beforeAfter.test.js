@@ -92,6 +92,12 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
 suite('6.3. middleware() argument piping', function() {
   var obj, mainMidd, firstMidd, secondMidd, thirdMidd;
   setup(function() {
+  });
+
+  teardown(function(){
+  });
+
+  test('6.3.1 Three arguments', function(done) {
     obj = Object.create(null);
     mainMidd = sinon.spy();
     firstMidd = sinon.spy();
@@ -100,12 +106,7 @@ suite('6.3. middleware() argument piping', function() {
     midd.make(obj, 'create', mainMidd, {beforeAfter: true});
     obj.create.before(firstMidd, secondMidd);
     obj.create.after(thirdMidd);
-  });
 
-  teardown(function(){
-  });
-
-  test('6.3.1 Three arguments', function(done) {
     var foo = {a: 1};
     var bar = {b: 2};
     obj.create(1, foo, bar).then(function(err){
@@ -116,6 +117,42 @@ suite('6.3. middleware() argument piping', function() {
       assert.ok(mainMidd.alwaysCalledWith(1, foo, bar), 'mainMidd should be invoked with these arguments');
       done();
     }, done).then(null, done);
+  });
+  suite('6.3.2 Main Callback arguments pipes to final promise', function() {
+    function invoke(returnValue) {
+      obj = Object.create(null);
+      mainMidd = function() {
+        return returnValue;
+      };
+      firstMidd = sinon.spy();
+      secondMidd = sinon.spy();
+      thirdMidd = sinon.spy();
+      midd.make(obj, 'create', mainMidd, {beforeAfter: true});
+      obj.create.before(firstMidd, secondMidd);
+      obj.create.after(thirdMidd);
+    }
+    test('6.3.2.1 Using a promise', function(done) {
+      var prom = new Promise(function(resolve){
+        resolve('value');
+      });
+      invoke(prom);
+
+      obj.create().then(function(val) {
+        assert.equal(val, 'value');
+      }).then(done, done);
+    });
+    test('6.3.2.2 Using a string', function(done) {
+      invoke('value');
+      obj.create().then(function(val) {
+        assert.equal(val, 'value');
+      }).then(done, done);
+    });
+    test('6.3.2.3 Using a number', function(done) {
+      invoke(9);
+      obj.create().then(function(val) {
+        assert.equal(val, 9);
+      }).then(done, done);
+    });
   });
 });
 
