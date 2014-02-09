@@ -111,13 +111,13 @@ middlewarify._fetchAndInvoke = function(midds, args, deferred, store) {
   }
 
   var midd = midds.shift();
-  Promise.cast(midd.apply(null, args))
+  Promise.try(function(){return midd.apply(null, args);})
     .then(function(val) {
       if (midd.isMain) {
         store.mainCallbackReturnValue = val;
       }
       middlewarify._fetchAndInvoke(midds, args, deferred, store);
-    }, deferred.reject.bind(deferred));
+    },deferred.reject.bind(deferred));
 };
 
 
