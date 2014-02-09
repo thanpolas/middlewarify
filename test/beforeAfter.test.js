@@ -64,8 +64,7 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
       assert.ok(fnPayload.calledBefore(midd4), '"fnPayload" called before "midd4"');
       assert.ok(midd4.calledBefore(midd5), '"midd4" called before "midd5"');
       assert.ok(midd5.calledBefore(midd6), '"midd5" called before "midd6"');
-      done();
-    }, done).then(null, done);
+    }).then(done, done);
   });
 
   test('6.2.1 Multiple arguments', function() {

@@ -40,18 +40,18 @@ suite('2. middleware.use() Sequence of invocation Synchronous', function() {
     midd.make(obj, 'create', lastMidd);
   });
 
-  teardown(function(){
-    obj.create();
-    assert.ok(firstMidd.calledOnce, 'firstMidd should be called only once');
-    assert.ok(secondMidd.calledOnce, 'secondMidd should be called only once');
-    assert.ok(thirdMidd.calledOnce, 'thirdMidd should be called only once');
-    assert.ok(lastMidd.calledOnce, 'lastMidd should be called only once');
+  teardown(function(done){
+    obj.create().then(function() {
+      assert.ok(firstMidd.calledOnce, 'firstMidd should be called only once. Called: ' + firstMidd.callCount);
+      assert.ok(secondMidd.calledOnce, 'secondMidd should be called only once. Called: ' + secondMidd.callCount);
+      assert.ok(thirdMidd.calledOnce, 'thirdMidd should be called only once. Called: ' + thirdMidd.callCount);
+      assert.ok(lastMidd.calledOnce, 'lastMidd should be called only once. Called: ' + lastMidd.callCount);
 
-    assert.ok(firstMidd.calledBefore(secondMidd), 'firstMidd should be called before secondMidd');
-    assert.ok(secondMidd.calledAfter(firstMidd), 'secondMidd should be called after firstMidd');
-    assert.ok(thirdMidd.calledAfter(secondMidd), 'thirdMidd should be called after secondMidd');
-    assert.ok(lastMidd.calledAfter(thirdMidd), 'lastMidd should be called after thirdMidd');
-
+      assert.ok(firstMidd.calledBefore(secondMidd), 'firstMidd should be called before secondMidd');
+      assert.ok(secondMidd.calledAfter(firstMidd), 'secondMidd should be called after firstMidd');
+      assert.ok(thirdMidd.calledAfter(secondMidd), 'thirdMidd should be called after secondMidd');
+      assert.ok(lastMidd.calledAfter(thirdMidd), 'lastMidd should be called after thirdMidd');
+    }).then(done, done);
   });
 
   test('2.1 Multiple arguments', function() {
@@ -81,25 +81,25 @@ suite('2.10 middleware.use() Sequence of invocation Asynchronous', function() {
     spyThirdMidd = sinon.spy();
 
     obj = Object.create(null);
-    lastMidd = function(next) {spyLastMidd();next();};
-    firstMidd = function(next) {spyFirstMidd();next();};
-    secondMidd = function(next) {spySecondMidd();next();};
-    thirdMidd = function(next) {spyThirdMidd();next();};
+    lastMidd = function() {spyLastMidd();};
+    firstMidd = function() {spyFirstMidd();};
+    secondMidd = function() {spySecondMidd();};
+    thirdMidd = function() {spyThirdMidd();};
     midd.make(obj, 'create', lastMidd);
   });
 
-  teardown(function(){
-    obj.create();
-    assert.ok(spyFirstMidd.calledOnce, 'firstMidd should be called only once');
-    assert.ok(spySecondMidd.calledOnce, 'secondMidd should be called only once');
-    assert.ok(spyThirdMidd.calledOnce, 'thirdMidd should be called only once');
-    assert.ok(spyLastMidd.calledOnce, 'lastMidd should be called only once');
+  teardown(function(done) {
+    obj.create().then(function(){
+      assert.ok(spyFirstMidd.calledOnce, 'firstMidd should be called only once');
+      assert.ok(spySecondMidd.calledOnce, 'secondMidd should be called only once');
+      assert.ok(spyThirdMidd.calledOnce, 'thirdMidd should be called only once');
+      assert.ok(spyLastMidd.calledOnce, 'lastMidd should be called only once');
 
-    assert.ok(spyFirstMidd.calledBefore(spySecondMidd), 'firstMidd should be called before secondMidd');
-    assert.ok(spySecondMidd.calledAfter(spyFirstMidd), 'secondMidd should be called after firstMidd');
-    assert.ok(spyThirdMidd.calledAfter(spySecondMidd), 'thirdMidd should be called after secondMidd');
-    assert.ok(spyLastMidd.calledAfter(spyThirdMidd), 'lastMidd should be called after thirdMidd');
-
+      assert.ok(spyFirstMidd.calledBefore(spySecondMidd), 'firstMidd should be called before secondMidd');
+      assert.ok(spySecondMidd.calledAfter(spyFirstMidd), 'secondMidd should be called after firstMidd');
+      assert.ok(spyThirdMidd.calledAfter(spySecondMidd), 'thirdMidd should be called after secondMidd');
+      assert.ok(spyLastMidd.calledAfter(spyThirdMidd), 'lastMidd should be called after thirdMidd');
+    }).then(done, done);
   });
 
   test('2.10.1 Multiple arguments', function() {
@@ -147,24 +147,60 @@ suite('3. middleware() argument piping', function() {
       done();
     }, done).then(null, done);
   });
+});
 
-  test('3.2 A callback as middleware invocation argument', function(done) {
-    midd.make(obj, 'read', function(argCb, middDone) {
-      argCb(666);
-      middDone(null, 999);
-    });
-
-    obj.read.use(function(argCb, next) {
-      assert.isFunction(argCb);
-      next();
-    });
-
-    obj.read(function(arg) {
-      assert.lengthOf(arguments, 1);
-      assert.equal(arg, 666);
-      done();
-    });
+suite('4 middleware returning values', function() {
+  function invoke(returnValue, done) {
+    var lastMidd = function() {return returnValue;};
+    var firstMidd = function() {return returnValue;};
+    var obj = Object.create(null);
+    midd.make(obj, 'create', lastMidd);
+    obj.create.use(firstMidd);
+    obj.create().then(done, done);
+  }
+  test('4.1 return undefined', function(done) {
+    invoke(undefined, done);
   });
+  test('4.2 return null', function(done) {
+    invoke(null, done);
+  });
+  test('4.3 return void', function(done) {
+    invoke(void 0, done);
+  });
+  test('4.4 return boolean false', function(done) {
+    invoke(false, done);
+  });
+  test('4.5 return boolean true', function(done) {
+    invoke(true, done);
+  });
+  test('4.6 return empty object', function(done) {
+    invoke({}, done);
+  });
+  test('4.7 return string', function(done) {
+    invoke('one', done);
+  });
+  test('4.8 return number', function(done) {
+    invoke(7, done);
+  });
+  test('4.9 return number 0', function(done) {
+    invoke(0, done);
+  });
+  test('4.10 return NaN', function(done) {
+    invoke(NaN, done);
+  });
+  test('4.11 return empty Array', function(done) {
+    invoke([], done);
+  });
+  test('4.12 return function', function(done) {
+    invoke(function(){}, done);
+  });
+  test('4.13 return regex', function(done) {
+    invoke(/a/, done);
+  });
+  test('4.13 return Error instance', function(done) {
+    invoke(new Error('inst'), done);
+  });
+
 });
 
 suite('5. Failing middleware cases', function(){

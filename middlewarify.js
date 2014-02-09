@@ -106,40 +106,10 @@ middlewarify._fetchAndInvoke = function(midds, args, deferred) {
   }
 
   var midd = midds.shift();
-
-  var arity = midd.length;
-  var argsLen = args.length;
-  /** @type {boolean} User defined callback */
-  var hasCb = false;
-
-  // check if there's a callback defined, be explicit expect arity
-  // to be args.length + 1
-  if (arity - argsLen === 1) {
-    hasCb = true;
-  }
-
-  function userCb(err) {
-    if (err) {
-      deferred.reject(err);
-    } else {
-      middlewarify._fetchAndInvoke(midds, args, deferred);
-    }
-  }
-
   var invokeArgs = Array.prototype.slice.call(args);
-
-  if (hasCb) {
-    invokeArgs.push(userCb);
-  }
-
-  middlewarify._invoke(midd, invokeArgs, function(err) {
-    if (err) {
-      return deferred.reject(err);
-    }
-    if (!hasCb) {
-      middlewarify._fetchAndInvoke(midds, args, deferred);
-    }
-  });
+  middlewarify._invoke(midd, invokeArgs).then(function() {
+    middlewarify._fetchAndInvoke(midds, args, deferred);
+  }, deferred.reject.bind(deferred));
 };
 
 /**
@@ -147,21 +117,18 @@ middlewarify._fetchAndInvoke = function(midds, args, deferred) {
  *
  * @param {Function} midd The middleware to invoke.
  * @param {Array} invokeArgs Arguments to invoke middleware with.
- * @param {Function(Error=)} cb callback.
+ * @return {Promise}
  * @private
  */
-middlewarify._invoke = function(midd, invokeArgs, cb) {
-  try {
+middlewarify._invoke = function(midd, invokeArgs) {
+  return new Promise(function(resolve, reject) {
     var maybePromise = midd.apply(null, invokeArgs);
-    if (Promise.is(maybePromise)) {
-      return maybePromise.then(cb, function(err) {
-        cb(err || new Error());
-      });
+    if (!maybePromise || typeof maybePromise.then !== 'function') {
+      resolve();
+    } else {
+      maybePromise.then(resolve, reject);
     }
-    cb();
-  } catch(ex) {
-    cb(ex);
-  }
+  });
 };
 
 /**
