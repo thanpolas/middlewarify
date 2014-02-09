@@ -26,9 +26,8 @@ var tasks = module.exports = {};
 
 // this is the main callback of your middleware,
 // it will be the last callback to be invoked.
-function createTask(done) {
+function createTask() {
   console.log('createTask Final Fn to be invoked');
-  done();
 }
 
 // Make the'create' Middleware Container.
@@ -48,18 +47,11 @@ tasks.create.use(function(){
   console.log('middleware 1');
 });
 
-// add another middleware to the 'create' operation
-// this time use a callback to indicate asynchronicity
-tasks.create.use(function(next){
-  console.log('middleware 2');
-  next();
-});
-
-// add a third middleware to the 'create' operation
+// add a second middleware to the 'create' operation
 // this time use a promise to indicate asynchronicity
-tasks.create.use(function(){
+tasks.create.use(function() {
   return new Promise(resolve, reject) {
-    console.log('middleware 3');
+    console.log('middleware 2');
     resolve();
   });
 });
@@ -75,7 +67,6 @@ tasks.create();
 // prints
 // middleware 1
 // middleware 2
-// middleware 3
 // createTask Final Fn to be invoked
 ```
 
@@ -101,9 +92,8 @@ var tasks = module.exports = {};
 // This is the main callback of your middleware,
 // it will be invoked after all 'before' middleware finish
 // and before any 'after' middleware.
-function createTask(done) {
+function createTask() {
     console.log('Invoked Second');
-    done(null);
 };
 
 // Make the'create' Middleware Container using before/after hooks
@@ -112,15 +102,13 @@ midd.make(tasks, 'create', createTask, {beforeAfter: true});
 /** ... */
 
 // add a before hook
-tasks.create.before(function(next) {
+tasks.create.before(function() {
     console.log('Invoked First');
-    next();
 });
 
 // add an after hook
-tasks.create.after(function(next) {
+tasks.create.after(function() {
     console.log('Invoked Third and last');
-    next();
 });
 
 /** ... */
@@ -211,32 +199,6 @@ crud.create.before(function() {
     });
 });
 ```
-
-#### Asynchronous Middleware Using Callbacks
-
-Middlewarify determines the arity of your middleware and if it detects that you have one, and only one, more argument that what the *Middleware Container* was invoked with, then it treats it as a callback and you need to invoke it to pass control to the next middleware.
-
-```js
-crud.create.use(function(next) {
-    // Since we expect "create" to be invoked without any arguments 
-    // then Middlewarify assumes this middleware is async and expects
-    // you to invoked "next" 
-    next();
-});
-
-crud.create(); // no arguments passed
-```
-
-The first argument of the `next()` callback is the **error indicator**, any truthy value passed will be considered an error and stop executing the middleware chain right there and then.
-
-```js
-crud.create.use(function(next) {
-    // something went wrong, bail out
-    next('an error occured');
-});
-```
-
-> If the Middleware Container is invoked with arguments, these arguments will be passed to all middleware and the callback function `next` **will always be the last argument**. Read the next section "Invoking the Middleware" for more.
 
 #### Invoking the Middleware
 
