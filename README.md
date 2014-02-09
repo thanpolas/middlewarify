@@ -253,6 +253,8 @@ crud.create(arg1, arg2, fn1).then(function() {
 });
 ```
 ## Release History
+- **v0.3.2**, *09 Feb 2014*
+    - Optimize middleware invocation using `Promise.try()`
 - **v0.3.1**, *09 Feb 2014*
     - Main Callback now passes value to final promise.
 - **v0.3.0**, *09 Feb 2014*
