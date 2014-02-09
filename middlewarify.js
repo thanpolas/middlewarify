@@ -111,32 +111,16 @@ middlewarify._fetchAndInvoke = function(midds, args, deferred, store) {
   }
 
   var midd = midds.shift();
-  middlewarify._invoke(midd, args).then(function(val) {
-    if (midd.isMain) {
-      store.mainCallbackReturnValue = val;
-    }
-    middlewarify._fetchAndInvoke(midds, args, deferred, store);
-  }, deferred.reject.bind(deferred));
+  Promise.cast(midd.apply(null, args))
+    .then(function(val) {
+      if (midd.isMain) {
+        store.mainCallbackReturnValue = val;
+      }
+      middlewarify._fetchAndInvoke(midds, args, deferred, store);
+    }, deferred.reject.bind(deferred));
 };
 
-/**
- * The actual invocation of the middleware happens here.
- *
- * @param {Function} midd The middleware to invoke.
- * @param {Array} invokeArgs Arguments to invoke middleware with.
- * @return {Promise}
- * @private
- */
-middlewarify._invoke = function(midd, invokeArgs) {
-  return new Promise(function(resolve, reject) {
-    var maybePromise = midd.apply(null, invokeArgs);
-    if (!maybePromise || typeof maybePromise.then !== 'function') {
-      resolve(maybePromise);
-    } else {
-      maybePromise.then(resolve, reject);
-    }
-  });
-};
+
 
 /**
  * Add middleware.
