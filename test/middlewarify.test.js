@@ -125,8 +125,6 @@ suite('3. middleware() argument piping', function() {
   });
 
   test('3.1 Three arguments', function(done) {
-
-
     function checkMiddlewareArgs(arg1, arg2, arg3) {
       assert.equal(arg1, 1);
       assert.deepEqual(arg2, {a: 1});
@@ -144,6 +142,30 @@ suite('3. middleware() argument piping', function() {
     var foo = {a: 1};
     var bar = {b: 2};
     obj.create(1, foo, bar).then(function() {
+      done();
+    }, done).then(null, done);
+  });
+  test('3.2 Mutating arguments', function(done) {
+    var count = 1;
+    function checkMiddlewareArgs(foo, bar) {
+      foo.a++;
+      bar.b++;
+      count++;
+      assert.equal(foo.a, count);
+      assert.deepEqual(bar.b, count + 1);
+    }
+
+    obj = Object.create(null);
+    lastMidd = checkMiddlewareArgs;
+    firstMidd = checkMiddlewareArgs;
+    secondMidd = checkMiddlewareArgs;
+    thirdMidd = checkMiddlewareArgs;
+    midd.make(obj, 'create', lastMidd);
+    obj.create.use(firstMidd, secondMidd, thirdMidd);
+
+    var foo = {a: 1};
+    var bar = {b: 2};
+    obj.create(foo, bar).then(function() {
       done();
     }, done).then(null, done);
   });

@@ -106,8 +106,7 @@ middlewarify._fetchAndInvoke = function(midds, args, deferred) {
   }
 
   var midd = midds.shift();
-  var invokeArgs = Array.prototype.slice.call(args);
-  middlewarify._invoke(midd, invokeArgs).then(function() {
+  middlewarify._invoke(midd, args).then(function() {
     middlewarify._fetchAndInvoke(midds, args, deferred);
   }, deferred.reject.bind(deferred));
 };
@@ -143,7 +142,7 @@ middlewarify._use = function(middObj, middType) {
   var middlewares = Array.prototype.slice.call(arguments, 2);
 
   var len = middlewares.length;
-  if (0 === len) return;
+  if (len === 0) return;
 
   function pushMidd(fn) {
     switch(middType) {
