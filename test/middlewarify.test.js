@@ -186,30 +186,5 @@ suite('5. Failing middleware cases', function(){
       done();
     }).then(null, done);
   });
-
-  test('5.2 a middleware calls next with an error', function(done){
-    obj.create.use(function(next){
-      next(new Error('an error'));
-    });
-    obj.create().then(noop, function(err){
-      assert.instanceOf(err, Error, '"err" should be instanceOf Error');
-      assert.equal(err.message, 'an error', 'Error message should match');
-      done();
-    }).then(null, done);
-  });
-
-  test('5.3 a failing middleware prevents rest of middleware from executing', function(done){
-    obj.create.use(function(next){
-      next(new Error('an error'));
-    });
-
-    var middSpy = sinon.spy();
-    obj.create.use(middSpy);
-
-    obj.create().then(null, function() {
-      assert.notOk(middSpy.called, 'second middleware should not be called');
-      done();
-    }, done).then(null, done);
-  });
 });
 
