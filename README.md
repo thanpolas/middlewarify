@@ -28,6 +28,7 @@ var tasks = module.exports = {};
 // it will be the last callback to be invoked.
 function createTask() {
   console.log('createTask Final Fn to be invoked');
+  return 'a value';
 }
 
 // Make the'create' Middleware Container.
@@ -63,11 +64,15 @@ tasks.create.use(function() {
 
 ```js
 // ... Invoking them all together
-tasks.create();
+tasks.create()
 // prints
 // middleware 1
 // middleware 2
 // createTask Final Fn to be invoked
+    .then(function(val) {
+        console.log(val);
+        // prints: "a value"
+    });
 ```
 
 Invoking the middleware will return a Promise, use the `then` function to determine all middleware including the final function invoked successfully:
@@ -94,6 +99,7 @@ var tasks = module.exports = {};
 // and before any 'after' middleware.
 function createTask() {
     console.log('Invoked Second');
+    return 999;
 };
 
 // Make the'create' Middleware Container using before/after hooks
@@ -114,8 +120,9 @@ tasks.create.after(function() {
 /** ... */
 
 // invoke all middleware
-tasks.create().then(function(){
+tasks.create().then(function(val){
   // at this point all middleware have finished.
+  console.log(val); // 999
 }, function(err) {
   // handle error
 });
@@ -136,7 +143,14 @@ middlewarify.make(crud, 'create');
 
 This example has created the Middleware Container `create` in the object `crud`. `crud.create()` is a function that will invoke all the middleware.
 
-You can pass a third argument, the `optMainCallback`, a Function. This can be considered the main payload of your middleware. 
+You can pass a third argument, the `optMainCallback`, a Function. This will be the *Main* callback of your middleware, the result returned, or resolved if a promise is used, will get passed to the final promise:
+
+```js
+crud.create().then(function(val) {
+    // this is the final promise.
+    // val is passed from the Main callback.
+});
+```
 
 `optOptions` defines behavior. Both `optOptions` and `optMainCallback` are optional and can be interswitched, i.e. you can pass options as a third argument, read on for examples and what are the available options.
 
