@@ -1,7 +1,7 @@
 {
   "name": "middlewarify",
   "description": "Apply the middleware pattern to any function.",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "homepage": "https://github.com/thanpolas/middlewarify",
   "author": {
     "name": "Thanasis Polychronakis",
