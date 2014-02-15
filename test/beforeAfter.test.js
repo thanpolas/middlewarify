@@ -214,3 +214,33 @@ suite('6.5. Failing middleware cases', function(){
     }, done).then(null, done);
   });
 });
+suite('6.6. Resolving Value propagation to After middl', function(){
+  var obj;
+  setup(function(){
+    obj = Object.create(null);
+  });
+  test('6.6.1 resolving value gets passed as an extra argument by promise', function(done) {
+    midd.make(obj, 'create', function() {
+      return new Promise(function(resolve) {
+        setTimeout(function(){
+          resolve('abc');
+        });
+      });
+    },{beforeAfter: true});
+
+    obj.create.after(function(arg1, arg2, resolveValue) {
+      assert.equal(resolveValue, 'abc');
+    });
+    obj.create(1, 2).then(done.bind(null), done);
+  });
+  test('6.6.2 resolving value gets passed as an extra argument by returning', function(done) {
+    midd.make(obj, 'create', function() {
+      return 'abc';
+    }, {beforeAfter: true});
+
+    obj.create.after(function(arg1, arg2, resolveValue) {
+      assert.equal(resolveValue, 'abc');
+    });
+    obj.create(1, 2).then(done.bind(null), done);
+  });
+});
