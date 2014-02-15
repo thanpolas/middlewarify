@@ -133,7 +133,6 @@ middlewarify._fetchAndInvoke = function(midds, args, deferred, store) {
  */
 middlewarify._use = function(middObj, middType) {
   var middlewares = Array.prototype.slice.call(arguments, 2);
-
   var len = middlewares.length;
   if (len === 0) return;
 
