@@ -186,7 +186,7 @@ In the above example we added 4 middleware before the final method `fnFinal` wil
 
 #### Middleware Arguments
 
-All middleware get invoked with the arguments that the *Middleware Container* was invoked with. The same number or arguments, the exact same references.
+All middleware gets invoked with the arguments that the *Middleware Container* was invoked with. The same number or arguments, the exact same references.
 
 ```js
 app.connect.use(function(req) {
@@ -252,7 +252,27 @@ crud.create(arg1, arg2, fn1).then(function() {
     return console.error(err);
 });
 ```
+
+#### After Hooks get the Result too
+
+If your middleware if a Before / After type, then all `.after()` hooks will receive an extra argument representing the resolving value.
+
+```js
+middlewarify.make(crud, 'create', function(arg1, arg2) {
+    return 'abc';
+});
+
+crud.create.after(function(arg1, arg2, val) {
+    console.log(val); // prints 'abc'
+});
+
+crud.create(1, 2);
+```
+
+
 ## Release History
+- **v0.3.3**, *15 Feb 2014*
+    - Resolving value now gets propagated to all `.after()` hooks.
 - **v0.3.2**, *09 Feb 2014*
     - Optimize middleware invocation using `Promise.try()`
 - **v0.3.1**, *09 Feb 2014*
