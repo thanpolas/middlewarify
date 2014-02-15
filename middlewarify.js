@@ -116,6 +116,7 @@ middlewarify._fetchAndInvoke = function(midds, args, deferred, store) {
     .then(function(val) {
       if (midd.isMain) {
         store.mainCallbackReturnValue = val;
+        args.push(val);
       }
       middlewarify._fetchAndInvoke(midds, args, deferred, store);
     }, deferred.reject.bind(deferred));

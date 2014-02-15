@@ -231,7 +231,7 @@ suite('6.6. Resolving Value propagation to After middl', function(){
     obj.create.after(function(arg1, arg2, resolveValue) {
       assert.equal(resolveValue, 'abc');
     });
-    obj.create(1, 2).then(done.bind(null), done);
+    obj.create(1, 2).then(done.bind(null, null), done);
   });
   test('6.6.2 resolving value gets passed as an extra argument by returning', function(done) {
     midd.make(obj, 'create', function() {
@@ -241,6 +241,6 @@ suite('6.6. Resolving Value propagation to After middl', function(){
     obj.create.after(function(arg1, arg2, resolveValue) {
       assert.equal(resolveValue, 'abc');
     });
-    obj.create(1, 2).then(done.bind(null), done);
+    obj.create(1, 2).then(done.bind(null, null), done);
   });
 });
