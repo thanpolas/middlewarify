@@ -271,6 +271,8 @@ crud.create(1, 2);
 
 
 ## Release History
+- **v0.3.4**, *19 Feb 2014*
+    - Update dependencies to latest.
 - **v0.3.3**, *15 Feb 2014*
     - Resolving value now gets propagated to all `.after()` hooks.
 - **v0.3.2**, *09 Feb 2014*
