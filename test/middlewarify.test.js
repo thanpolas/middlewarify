@@ -244,6 +244,18 @@ suite('5. Failing middleware cases', function(){
       done();
     }).then(null, done);
   });
+  test('5.1.3 main callback accepts throw error', function(done){
+    var custObj = Object.create(null);
+    midd.make(custObj, 'create', function() {
+      throw new Error('an error');
+    });
+    custObj.create().then(noop, function(err){
+      assert.instanceOf(err, Error, '"err" should be instanceOf Error');
+      assert.equal(err.message, 'an error', 'Error message should match');
+      done();
+    }).then(null, done);
+  });
+
 });
 
 suite('3.5.2 Main Callback arguments pipes to final promise', function() {

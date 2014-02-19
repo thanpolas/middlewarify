@@ -187,13 +187,11 @@ suite('6.5. Failing middleware cases', function(){
   });
 
 
-  test('6.5.1.2 Before middleware throws an error when param is not throw', function(done){
+  test('6.5.1.2 Main callback throws an error', function(done){
     var custObj = Object.create(null);
-    midd.make(custObj, 'create', {beforeAfter: true});
-
-    custObj.create.before(function() {
+    midd.make(custObj, 'create', function() {
       throw new Error('an error');
-    });
+    }, {beforeAfter: true});
 
     custObj.create().then(noop, function(err){
       assert.instanceOf(err, Error, '"err" should be instanceOf Error');
@@ -201,12 +199,24 @@ suite('6.5. Failing middleware cases', function(){
       done();
     }, done).then(null, done);
   });
-  test('6.5.1.3 After middleware throws an error when param is not throw', function(done){
+  test('6.5.1.3 Main callback throws an error async', function(done){
+    function promiseAsyncReject() {
+      return new Promise(function(resolve, reject) {
+        setTimeout(function(){
+          reject(new Error('an error'));
+        });
+      });
+    }
+
     var custObj = Object.create(null);
-    midd.make(custObj, 'create', {beforeAfter: true});
-    custObj.create.after(function(){
-      throw new Error('an error');
-    });
+    midd.make(custObj, 'create', function() {
+      return promiseAsyncReject()
+        .catch(function(err) {
+          console.log('err:', err);
+          throw err;
+        });
+    }, {beforeAfter: true});
+
     custObj.create().then(noop, function(err){
       assert.instanceOf(err, Error, '"err" should be instanceOf Error');
       assert.equal(err.message, 'an error', 'Error message should match');
