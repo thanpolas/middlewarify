@@ -254,3 +254,42 @@ suite('6.6. Resolving Value propagation to After middl', function(){
     obj.create(1, 2).then(done.bind(null, null), done);
   });
 });
+
+suite('6.7 Unhandled errors', function() {
+  var obj;
+  setup(function(){
+    obj = Object.create(null);
+  });
+  test('6.7.1 Throwing errors does not cause Unhandled exceptions', function(done) {
+    Promise.onPossiblyUnhandledRejection(done);
+    midd.make(obj, 'create', Promise.method(function() {
+      throw new Error('Boo');
+    }), {beforeAfter: true});
+
+    obj.create().catch(function(err) {
+      assert.equal(err.message, 'Boo');
+      assert.instanceOf(err, Error);
+    }).then(done, done);
+  });
+  test('6.7.2 Throwing errors does not cause Unhandled exceptions', function(done) {
+    Promise.onPossiblyUnhandledRejection(done);
+
+    function prom() {
+      return new Promise(function(resolve) {
+        setTimeout(resolve, 1000);
+      });
+    }
+
+    midd.make(obj, 'create', Promise.method(function() {
+      return prom().then(function() {
+        throw new Error('Boo');
+      });
+    }), {beforeAfter: true});
+
+    obj.create().catch(function(err) {
+      assert.equal(err.message, 'Boo');
+      assert.instanceOf(err, Error);
+    }).then(done, done);
+  });
+
+});
