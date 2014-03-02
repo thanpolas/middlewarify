@@ -109,8 +109,7 @@ suite('6.3. middleware() argument piping', function() {
 
     var foo = {a: 1};
     var bar = {b: 2};
-    obj.create(1, foo, bar).then(function(err){
-      assert.notOk(err, 'error should not be truthy');
+    obj.create(1, foo, bar).then(function() {
       assert.ok(firstMidd.alwaysCalledWith(1, foo, bar), 'firstMidd should be invoked with these arguments');
       assert.ok(secondMidd.alwaysCalledWith(1, foo, bar), 'secondMidd should be invoked with these arguments');
       assert.ok(thirdMidd.alwaysCalledWith(1, foo, bar), 'thirdMidd should be invoked with these arguments');
@@ -291,5 +290,18 @@ suite('6.7 Unhandled errors', function() {
       assert.instanceOf(err, Error);
     }).then(done, done);
   });
+  test('6.7.3 Rejecting promise does not cause Unhandled exceptions', function(done) {
+    Promise.onPossiblyUnhandledRejection(done);
+    midd.make(obj, 'create', function() {
+      return new Promise(function(resolve, reject) {
+        setTimeout(function() {
+          reject('lol');
+        });
+      });
+    }, {beforeAfter: true});
 
+    obj.create().catch(function(err) {
+      assert.equal(err, 'lol');
+    }).then(done, done);
+  });
 });

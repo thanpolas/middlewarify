@@ -45,22 +45,28 @@ suite('7. Promise Interface', function() {
     test('7.' + num + '.2 propagates error', function(done) {
       thing.create[middMethod](function() {
         return new Promise(function(resolve, reject) {
-          reject();
+          setTimeout(function() {
+            reject('poop');
+          });
         });
       });
-      thing.create().then(noop, done.bind(null, null));
+      thing.create()
+        .catch(function(err) {
+          done();
+        });
 
     });
     test('7.' + num + '.3 propagates error message', function(done) {
       thing.create[middMethod](function() {
         return new Promise(function(resolve, reject) {
-          reject('Error');
+          setTimeout(function() {
+            reject('Error');
+          });
         });
       });
-      thing.create().then(null, function(err) {
+      thing.create().catch(function(err) {
         assert.equal(err, 'Error');
-        done();
-      }).then(null, done);
+      }).then(done, done);
     });
     test('7.' + num + '.4 arguments propagate', function(done) {
       thing.create[middMethod](function(arg1) {
@@ -151,7 +157,9 @@ suite('7. Promise Interface', function() {
     test('7.8.3 propagates error message', function(done) {
       thing.create.use(function() {
         return new Promise(function(resolve, reject) {
-          reject('Error');
+          setTimeout(function() {
+            reject('Error');
+          });
         });
       });
       thing.create().then(null, function(err) {

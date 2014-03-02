@@ -72,15 +72,12 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
  * Invokes all the middleware.
  * @param  {Object} middObj Internal midd object.
  * @param  {*...} varArgs Any number of arguments
- * @param  {Function=} optCb last argument is callback
- * @return {Object} the -master- callback using done(fn).
+ * @return {Promise} A promise.
  * @private
  */
 middlewarify._invokeMiddleware = function(middObj) {
   var args = Array.prototype.slice.call(arguments, 1);
   return new Promise(function(resolve, reject) {
-    var deferred = Promise.defer();
-    deferred.promise.then(resolve, reject);
     var midds;
     if (middObj.params.beforeAfter) {
       midds = Array.prototype.slice.call(middObj.beforeMidds);
@@ -90,36 +87,45 @@ middlewarify._invokeMiddleware = function(middObj) {
       midds = Array.prototype.slice.call(middObj.midds);
       midds.push(middObj.mainCallback);
     }
-    middlewarify._fetchAndInvoke(midds, args, deferred, {
+
+    var store = {
       mainCallbackReturnValue: null,
-    });
+    };
+    var deferred = {
+      resolve: resolve,
+      reject: reject,
+    };
+    middlewarify._fetchAndInvoke(midds, args, store, deferred);
   });
 };
 
 /**
  * Fetch a middleware ensuring FIFO and invoke it.
  *
- * @param {Array.<Function>} midds The array with the middleware.
+ * @param {Array.<Function>} midds The middleware.
  * @param {Array} args An array of arbitrary arguments, can be empty.
- * @param {Promise.Defer} deferred Deferred object.
- * @param {Object} store A map, helper for main cb return value.
+ * @param {Object} store use as store.
+ * @param {Object} deferred contains resolve, reject fns.
+ * @return {Promise} A promise.
  * @private
  */
-middlewarify._fetchAndInvoke = function(midds, args, deferred, store) {
-  if (midds.length === 0) {
+middlewarify._fetchAndInvoke = function(midds, args, store, deferred) {
+  if (!midds.length) {
     return deferred.resolve(store.mainCallbackReturnValue);
   }
-
   var midd = midds.shift();
-  // Promise.try(function(){return midd.apply(null, args);})
-  Promise.try(midd.bind.apply(midd, [null].concat(args)))
+  Promise.try(midd, args)
     .then(function(val) {
       if (midd.isMain) {
         store.mainCallbackReturnValue = val;
         args.push(val);
       }
-      middlewarify._fetchAndInvoke(midds, args, deferred, store);
-    }, deferred.reject.bind(deferred));
+
+      middlewarify._fetchAndInvoke(midds, args, store, deferred);
+    })
+    .catch(function(err) {
+      deferred.reject(err);
+    });
 };
 
 
