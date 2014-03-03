@@ -272,6 +272,9 @@ crud.create(1, 2);
 
 
 ## Release History
+
+- **v0.3.7**, *03 Mar 2014*
+    - Added `catchAll` option for cases where invocations have no error handlers.
 - **v0.3.6**, *02 Mar 2014*
     - Optimizations and better handling of errors.
     - Updated to latest Bluebird, now suppresses unhandled errors.
