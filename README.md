@@ -159,6 +159,7 @@ crud.create().then(function(val) {
 `make()` accepts the following options:
 
 * `beforeAfter` type: **Boolean**, default: `false` If set to true the Before/After hooks will be used instead of the single queue `use` hook, which is the default, view the [example displayed above](#using-the-before--after-middleware-type).
+* `catchAll` type **Function**, default: `null` If defined all errors will be piped to this callback, useful when Middleware is used as Express middleware.
 
 #### The use(fn) Method
 
