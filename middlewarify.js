@@ -28,18 +28,7 @@ middlewarify.Type = {
  */
 middlewarify.make = function(obj, prop, optFinalCb, optParams) {
 
-  var middObj = Object.create(null);
-  middObj.mainCallback = noopMidd;
-  middObj.mainCallback.isMain = true;
-
-  /**
-   * The default parameters object.
-   *
-   * @type {Object}
-   */
-  var defaultParams = {
-    beforeAfter: false,
-  };
+  var middObj = middlewarify.newMidd();
 
   if (__.isFunction(optFinalCb)) {
     middObj.mainCallback = optFinalCb;
@@ -53,6 +42,16 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
   if (__.isObject(optParams)) {
     params = optParams;
   }
+
+  /**
+   * The default parameters object.
+   *
+   * @type {Object}
+   */
+  var defaultParams = {
+    beforeAfter: false,
+    catchAll: null,
+  };
   middObj.params = __.extend(defaultParams, params);
 
   obj[prop] = middlewarify._invokeMiddleware.bind(null, middObj);
@@ -66,6 +65,19 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
     middObj.midds = [];
     obj[prop].use = middlewarify._use.bind(null, middObj, middlewarify.Type.USE);
   }
+};
+
+/**
+ * Create an initialize a new Middleware Object.
+ *
+ * @return {Object} A new Middleware Object.
+ */
+middlewarify.newMidd = function() {
+  var middObj = Object.create(null);
+  middObj.mainCallback = noopMidd;
+  middObj.mainCallback.isMain = true;
+
+  return middObj;
 };
 
 /**
@@ -96,6 +108,13 @@ middlewarify._invokeMiddleware = function(middObj) {
       reject: reject,
     };
     middlewarify._fetchAndInvoke(midds, args, store, deferred);
+  }).catch(function(err) {
+    // check for catchAll error handler.
+    if (typeof middObj.params.catchAll === 'function') {
+      middObj.params.catchAll(err);
+    } else {
+      throw err;
+    }
   });
 };
 
