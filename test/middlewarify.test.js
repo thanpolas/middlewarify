@@ -256,6 +256,20 @@ suite('5. Failing middleware cases', function(){
     }).then(null, done);
   });
 
+  test('5.1.4 Catch All option', function(done) {
+    var custObj = Object.create(null);
+    midd.make(custObj, 'create', function() {
+      throw new Error('an error');
+    }, {
+      catchAll: function(err) {
+        assert.instanceOf(err, Error, '"err" should be instanceOf Error');
+        assert.equal(err.message, 'an error', 'Error message should match');
+        done();
+      },
+    });
+    custObj.create();
+  });
+
 });
 
 suite('3.5.2 Main Callback arguments pipes to final promise', function() {
