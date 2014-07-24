@@ -27,6 +27,7 @@ suite('6. Before / After middleware', function() {
     assert.isFunction(obj.create, 'obj.create should be a function');
     assert.isFunction(obj.create.before, 'obj.create.before should be a function');
     assert.isFunction(obj.create.after, 'obj.create.after should be a function');
+    assert.isFunction(obj.create.last, 'obj.create.last should be a function');
     assert.notProperty(obj.create, 'use', 'obj.create should NOT have a use fn');
     assert.isFunction(obj.create().then, 'obj.create().then should be a Function');
     assert.ok(Promise.is(obj.create()), 'obj.create() is a Promise');
@@ -34,7 +35,7 @@ suite('6. Before / After middleware', function() {
 });
 
 suite('6.2. middleware before/after Sequence of invocation', function() {
-  var obj, midd1, midd2, midd3, midd4, midd5, midd6, fnPayload;
+  var obj, midd1, midd2, midd3, midd4, midd5, midd6, middFinal, fnPayload;
 
   setup(function() {
     obj = Object.create(null);
@@ -44,6 +45,7 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
     midd4 = sinon.spy();
     midd5 = sinon.spy();
     midd6 = sinon.spy();
+    middFinal = sinon.spy();
     fnPayload = sinon.spy();
     midd.make(obj, 'create', fnPayload, {beforeAfter: true});
   });
@@ -56,6 +58,7 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
       assert.ok(midd4.calledOnce, 'midd4 called only once, called: ' + midd4.callCount);
       assert.ok(midd5.calledOnce, 'midd5 called only once, called: ' + midd5.callCount);
       assert.ok(midd6.calledOnce, 'midd6 called only once, called: ' + midd6.callCount);
+      assert.ok(middFinal.calledOnce, 'middFinal called only once, called: ' + middFinal.callCount);
       assert.ok(fnPayload.calledOnce, 'fnPayload called only once');
 
       assert.ok(midd1.calledBefore(midd2), '"midd1" called before "midd2"');
@@ -64,14 +67,17 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
       assert.ok(fnPayload.calledBefore(midd4), '"fnPayload" called before "midd4"');
       assert.ok(midd4.calledBefore(midd5), '"midd4" called before "midd5"');
       assert.ok(midd5.calledBefore(midd6), '"midd5" called before "midd6"');
+      assert.ok(midd6.calledBefore(middFinal), '"midd6" called before "middFinal"');
     }).then(done, done);
   });
 
   test('6.2.1 Multiple arguments', function() {
     obj.create.before(midd1, midd2, midd3);
+    obj.create.last(middFinal);
     obj.create.after(midd4, midd5, midd6);
   });
   test('6.2.2 Multiple calls', function() {
+    obj.create.last(middFinal);
     obj.create.before(midd1);
     obj.create.before(midd2);
     obj.create.before(midd3);
@@ -81,16 +87,18 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
   });
   test('6.2.3 An array', function() {
     obj.create.before([midd1, midd2, midd3]);
+    obj.create.last([middFinal]);
     obj.create.after([midd4, midd5, midd6]);
   });
   test('6.2.4 Array mixed with arg', function() {
     obj.create.before([midd1, midd2], midd3);
+    obj.create.last(middFinal);
     obj.create.after([midd4, midd5], midd6);
   });
 });
 
 suite('6.3. middleware() argument piping', function() {
-  var obj, mainMidd, firstMidd, secondMidd, thirdMidd;
+  var obj, mainMidd, firstMidd, secondMidd, thirdMidd, lastMidd;
   setup(function() {
   });
 
@@ -103,9 +111,11 @@ suite('6.3. middleware() argument piping', function() {
     firstMidd = sinon.spy();
     secondMidd = sinon.spy();
     thirdMidd = sinon.spy();
+    lastMidd = sinon.spy();
     midd.make(obj, 'create', mainMidd, {beforeAfter: true});
     obj.create.before(firstMidd, secondMidd);
     obj.create.after(thirdMidd);
+    obj.create.last(lastMidd);
 
     var foo = {a: 1};
     var bar = {b: 2};
@@ -114,6 +124,7 @@ suite('6.3. middleware() argument piping', function() {
       assert.ok(secondMidd.alwaysCalledWith(1, foo, bar), 'secondMidd should be invoked with these arguments');
       assert.ok(thirdMidd.alwaysCalledWith(1, foo, bar), 'thirdMidd should be invoked with these arguments');
       assert.ok(mainMidd.alwaysCalledWith(1, foo, bar), 'mainMidd should be invoked with these arguments');
+      assert.ok(lastMidd.alwaysCalledWith(1, foo, bar), 'lastMidd should be invoked with these arguments');
       done();
     }, done).then(null, done);
   });
