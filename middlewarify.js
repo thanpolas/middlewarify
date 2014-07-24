@@ -13,6 +13,7 @@ var noopMidd = function(cb) {if (__.isFunction(cb)) cb();};
 middlewarify.Type = {
   BEFORE: 'before',
   AFTER: 'after',
+  LAST: 'last',
   USE: 'use',
 };
 
@@ -59,8 +60,10 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
   if (middObj.params.beforeAfter) {
     middObj.beforeMidds = [];
     middObj.afterMidds = [];
+    middObj.lastMidds = [];
     obj[prop].before = middlewarify._use.bind(null, middObj, middlewarify.Type.BEFORE);
     obj[prop].after = middlewarify._use.bind(null, middObj, middlewarify.Type.AFTER);
+    obj[prop].last = middlewarify._use.bind(null, middObj, middlewarify.Type.LAST);
   } else {
     middObj.midds = [];
     obj[prop].use = middlewarify._use.bind(null, middObj, middlewarify.Type.USE);
@@ -82,6 +85,7 @@ middlewarify.newMidd = function() {
 
 /**
  * Invokes all the middleware.
+ *
  * @param  {Object} middObj Internal midd object.
  * @param  {*...} varArgs Any number of arguments
  * @return {Promise} A promise.
@@ -94,7 +98,7 @@ middlewarify._invokeMiddleware = function(middObj) {
     if (middObj.params.beforeAfter) {
       midds = Array.prototype.slice.call(middObj.beforeMidds);
       midds.push(middObj.mainCallback);
-      midds = midds.concat(middObj.afterMidds);
+      midds = midds.concat(middObj.afterMidds, middObj.lastMidds);
     } else {
       midds = Array.prototype.slice.call(middObj.midds);
       midds.push(middObj.mainCallback);
@@ -169,6 +173,9 @@ middlewarify._use = function(middObj, middType) {
       break;
     case middlewarify.Type.AFTER:
       middObj.afterMidds.push(fn);
+      break;
+    case middlewarify.Type.LAST:
+      middObj.lastMidds.push(fn);
       break;
     case middlewarify.Type.USE:
       middObj.midds.push(fn);
