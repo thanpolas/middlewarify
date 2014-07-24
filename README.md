@@ -13,14 +13,14 @@ Middleware pattern implementation, robust, easy, fast. You can add two types of 
 npm install middlewarify --save
 ```
 
-## Quick Start
+## Documentation
 
 ### Quick Start Example
 
 Creating a middleware:
 
 ```js
-var midd = require('middlewarify');
+var middlewarify = require('middlewarify');
 
 var tasks = module.exports = {};
 
@@ -32,7 +32,7 @@ function createTask() {
 }
 
 // Make the'create' Middleware Container.
-midd.make(tasks, 'create', createTask);
+middlewarify.make(tasks, 'create', createTask);
 ```
 
 ...Add middleware
@@ -85,12 +85,22 @@ tasks.create().then(function() {
 });
 ```
 
-#### Using the Before / After Middleware type
+### Using the Before / After / Last Middleware types
 
-To use the Before/After hook types all you need to do is pass an option to Middlewarify's `make()` method.
+To use the Before/After/Last hook types all you need to do is pass the `{beforeAfter: true}` option to Middlewarify's `make()` method.
+
+When using the `beforeAfter` option instead of the typical `use()` method three different methods are created on the resulting middleware method:
+
+* `midd.before()` Hook functions to be invoked **before** the main middleware function.
+* `midd.after()` Hook functions to be invoked **after** the main middleware function.
+* `midd.last()` Hook functions to be invoked **last**, after the main middleware and all middleware functions have been executed.
+
+> All added hooks are invoked in the order they were added.
+
+#### Before / After / Last Middleware Example
 
 ```js
-var midd = require('middlewarify');
+var middlewarify = require('middlewarify');
 
 var tasks = module.exports = {};
 
@@ -103,7 +113,7 @@ function createTask() {
 };
 
 // Make the'create' Middleware Container using before/after hooks
-midd.make(tasks, 'create', createTask, {beforeAfter: true});
+middlewarify.make(tasks, 'create', createTask, {beforeAfter: true});
 
 /** ... */
 
@@ -114,7 +124,12 @@ tasks.create.before(function() {
 
 // add an after hook
 tasks.create.after(function() {
-    console.log('Invoked Third and last');
+    console.log('Invoked Third');
+});
+
+// add an always LAST hook, will always invoke last
+task.create.last(function() {
+    console.log('Will always invoke last');
 });
 
 /** ... */
@@ -126,7 +141,6 @@ tasks.create().then(function(val){
 }, function(err) {
   // handle error
 });
-
 ```
 
 ## Middlewarify Methods
