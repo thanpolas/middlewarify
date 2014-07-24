@@ -287,6 +287,8 @@ crud.create(1, 2);
 
 ## Release History
 
+- **v0.3.8**, *24 Jul 2014*
+    - Implemented `.last()` middleware type in beforeAfter family.
 - **v0.3.7**, *03 Mar 2014*
     - Added `catchAll` option for cases where invocations have no error handlers.
 - **v0.3.6**, *02 Mar 2014*
@@ -315,7 +317,7 @@ crud.create(1, 2);
     - Big Bang
 
 ## License
-Copyright 2013 Thanasis Polychronakis
+Copyright 2014 Thanasis Polychronakis
 
 Licensed under the [MIT License](LICENSE-MIT)
 
