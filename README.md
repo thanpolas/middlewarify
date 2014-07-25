@@ -136,10 +136,10 @@ task.create.last(function() {
 
 // invoke all middleware
 tasks.create().then(function(val){
-  // at this point all middleware have finished.
-  console.log(val); // 999
+    // at this point all middleware have finished.
+    console.log(val); // 999
 }, function(err) {
-  // handle error
+    // handle error
 });
 ```
 
@@ -268,7 +268,7 @@ crud.create(arg1, arg2, fn1).then(function() {
 });
 ```
 
-#### After Hooks get the Result too
+#### After & Last Hooks get the Result
 
 If your middleware if a Before / After type, then all `.after()` hooks will receive an extra argument representing the resolving value.
 
@@ -284,6 +284,24 @@ crud.create.after(function(arg1, arg2, val) {
 crud.create(1, 2);
 ```
 
+#### After & Last Hooks can alter the Result
+
+All After & Last hooks may alter the result as long as they return any type of value except `undefined`.
+
+```js
+middlewarify.make(crud, 'create', function() {
+    return 'abc';
+});
+
+crud.create.after(function(result) {
+    // return an altered outcome
+    return 'def';
+});
+
+crud.create().then(function(result) {
+    console.log(result); // prints "def"
+});
+```
 
 ## Release History
 
