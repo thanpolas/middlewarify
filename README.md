@@ -287,6 +287,8 @@ crud.create(1, 2);
 
 ## Release History
 
+- **v0.4.0**, *25 Jul 2014*
+    - Now After & Last middlewares may alter the result value by returning a non undefined value.
 - **v0.3.8**, *24 Jul 2014*
     - Implemented `.last()` middleware type in beforeAfter family.
 - **v0.3.7**, *03 Mar 2014*
