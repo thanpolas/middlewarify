@@ -129,19 +129,31 @@ middlewarify._invokeMiddleware = function(middObj) {
  * @param {Array} args An array of arbitrary arguments, can be empty.
  * @param {Object} store use as store.
  * @param {Object} deferred contains resolve, reject fns.
+ * @param {boolean=} optAfter If next middleware is after the main callback.
  * @return {Promise} A promise.
  * @private
  */
-middlewarify._fetchAndInvoke = function(midds, args, store, deferred) {
+middlewarify._fetchAndInvoke = function(midds, args, store, deferred, optAfter) {
   if (!midds.length) {
     return deferred.resolve(store.mainCallbackReturnValue);
   }
+
+  var isAfter = !!optAfter;
+
   var midd = midds.shift();
   Promise.try(midd, args)
     .then(function(val) {
       if (midd.isMain) {
         store.mainCallbackReturnValue = val;
         args.push(val);
+      }
+
+      // check for return value and after-main CB
+      // if pass then replace the main callback return value with the one
+      // provided
+      if (isAfter && typeof val !== 'undefined') {
+        store.mainCallbackReturnValue = val;
+        args.splice(-1, 1, val);
       }
 
       middlewarify._fetchAndInvoke(midds, args, store, deferred);
