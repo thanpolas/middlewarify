@@ -143,11 +143,6 @@ middlewarify._fetchAndInvoke = function(midds, args, store, deferred, optAfter) 
   var midd = midds.shift();
   Promise.try(midd, args)
     .then(function(val) {
-      if (midd.isMain) {
-        store.mainCallbackReturnValue = val;
-        args.push(val);
-      }
-
       // check for return value and after-main CB
       // if pass then replace the main callback return value with the one
       // provided
@@ -156,7 +151,13 @@ middlewarify._fetchAndInvoke = function(midds, args, store, deferred, optAfter) 
         args.splice(-1, 1, val);
       }
 
-      middlewarify._fetchAndInvoke(midds, args, store, deferred);
+      if (midd.isMain) {
+        store.mainCallbackReturnValue = val;
+        args.push(val);
+        isAfter = true;
+      }
+
+      middlewarify._fetchAndInvoke(midds, args, store, deferred, isAfter);
     })
     .catch(function(err) {
       deferred.reject(err);
