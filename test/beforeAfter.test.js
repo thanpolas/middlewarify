@@ -9,7 +9,7 @@ var midd = require('../');
 
 var noop = function(){};
 
-suite('6. Before / After middleware', function() {
+suite('6. Before / After / Last middleware', function() {
 
   setup(function() {});
 
@@ -314,5 +314,68 @@ suite('6.7 Unhandled errors', function() {
     obj.create().catch(function(err) {
       assert.equal(err, 'lol');
     }).then(done, done);
+  });
+});
+
+suite('6.8 Resolving Value can be altered by After & Last middleware', function() {
+  var obj;
+  setup(function(){
+    obj = Object.create(null);
+  });
+  test('6.8.1 After middleware can alter outcome ASYNC', function(done) {
+    midd.make(obj, 'create', function() {
+      return 'abc';
+    },{beforeAfter: true});
+
+    obj.create.after(function() {
+      return Promise.resolve('def');
+    });
+    obj.create.after(function(resolveValue) {
+      assert.equal(resolveValue, 'def');
+    });
+
+    obj.create().then(done.bind(null, null), done);
+  });
+  test('6.8.2 After middleware can alter outcome SYNC', function(done) {
+    midd.make(obj, 'create', function() {
+      return 'abc';
+    },{beforeAfter: true});
+
+    obj.create.after(function() {
+      return 'def';
+    });
+    obj.create.after(function(resolveValue) {
+      assert.equal(resolveValue, 'def');
+    });
+
+    obj.create().then(done.bind(null, null), done);
+  });
+  test('6.8.3 Last middleware can alter outcome ASYNC', function(done) {
+    midd.make(obj, 'create', function() {
+      return 'abc';
+    },{beforeAfter: true});
+
+    obj.create.last(function() {
+      return Promise.resolve('def');
+    });
+    obj.create.last(function(resolveValue) {
+      assert.equal(resolveValue, 'def');
+    });
+
+    obj.create().then(done.bind(null, null), done);
+  });
+  test('6.8.4 Last middleware can alter outcome SYNC', function(done) {
+    midd.make(obj, 'create', function() {
+      return 'abc';
+    },{beforeAfter: true});
+
+    obj.create.last(function() {
+      return 'def';
+    });
+    obj.create.last(function(resolveValue) {
+      assert.equal(resolveValue, 'def');
+    });
+
+    obj.create().then(done.bind(null, null), done);
   });
 });
