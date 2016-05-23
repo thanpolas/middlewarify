@@ -51,7 +51,7 @@ tasks.create.use(function(){
 // add a second middleware to the 'create' operation
 // this time use a promise to indicate asynchronicity
 tasks.create.use(function() {
-  return new Promise(resolve, reject) {
+  return new Promise(function(resolve, reject) {
     console.log('middleware 2');
     resolve();
   });
@@ -222,7 +222,7 @@ You can return a Promise from your middleware and Middlewarify will wait for its
 
 ```js
 crud.create.before(function() {
-    return new Promise(resolve, reject) {
+    return new Promise(function(resolve, reject) {
         // do something async...
         resolve();
     });
