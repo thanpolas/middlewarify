@@ -14,32 +14,30 @@
   "bugs": {
     "url": "https://github.com/thanpolas/middlewarify/issues"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/thanpolas/middlewarify/blob/master/LICENSE-MIT"
-    }
-  ],
+  "license": "MIT",
   "contributors": [
     {}
   ],
   "engines": {
-    "node": ">= 0.8.0"
+    "node": ">= 10"
   },
   "scripts": {
-    "test": "node_modules/.bin/mocha -u tdd -R spec test/"
+    "test": "mocha -u tdd -R spec test/",
+    "release": "grunt release:patch",
+    "release:minor": "grunt release:minor",
+    "release:major": "grunt release:major"
   },
   "dependencies": {
-    "lodash": "~3.10.0",
-    "async": "~1.4.0",
-    "bluebird": "~2.9.34"
+    "lodash": "~4.17.15",
+    "async": "~3.1.1",
+    "bluebird": "~3.7.2"
   },
   "devDependencies": {
-    "sinon": "~1.15.4",
-    "mocha": "~2.2.5",
-    "chai": "~3.2.0",
-    "grunt": "~0.4.5",
-    "grunt-release": "~0.13.0"
+    "sinon": "~8.1.1",
+    "mocha": "~7.0.1",
+    "chai": "~4.2.0",
+    "grunt": "~1.0.4",
+    "grunt-release": "~0.14.0"
   },
   "keywords": [
     "middleware",
