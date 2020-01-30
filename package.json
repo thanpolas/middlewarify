@@ -27,7 +27,10 @@
     "node": ">= 0.8.0"
   },
   "scripts": {
-    "test": "mocha -u tdd -R spec test/"
+    "test": "mocha -u tdd -R spec test/",
+    "release": "grunt release:patch",
+    "release:minor": "grunt release:minor",
+    "release:major": "grunt release:major"
   },
   "dependencies": {
     "lodash": "~4.17.15",
