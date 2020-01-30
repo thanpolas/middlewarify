@@ -14,17 +14,12 @@
   "bugs": {
     "url": "https://github.com/thanpolas/middlewarify/issues"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/thanpolas/middlewarify/blob/master/LICENSE-MIT"
-    }
-  ],
+  "license": "MIT",
   "contributors": [
     {}
   ],
   "engines": {
-    "node": ">= 0.8.0"
+    "node": ">= 10"
   },
   "scripts": {
     "test": "mocha -u tdd -R spec test/",
