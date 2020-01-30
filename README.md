@@ -318,9 +318,11 @@ crud.create().then(function(result) {
 
 ## Release History
 
+- **v1.0.1**, *30 Jan 2020*
+    - Updated all dependencies to latest.
 - **v1.0.0**, *23 Jul 2015*
     - Honorary release.
-    - Update all dependencies to latest
+    - Updated all dependencies to latest.
 - **v0.4.0**, *25 Jul 2014*
     - Now After & Last middlewares may alter the result value by returning a non undefined value.
 - **v0.3.8**, *24 Jul 2014*
