@@ -20,15 +20,18 @@ npm install middlewarify --save
 Creating a middleware:
 
 ```js
-var middlewarify = require('middlewarify');
+const middlewarify = require('middlewarify');
 
-var tasks = module.exports = {};
+const tasks = module.exports = {};
 
 // this is the main callback of your middleware,
 // it will be the last callback to be invoked.
-function createTask() {
+function createTask(data) {
   console.log('createTask Final Fn to be invoked');
-  return 'a value';
+  
+  /** do something with "data" ... */
+
+  return true;
 }
 
 // Make the'create' Middleware Container.
@@ -40,49 +43,59 @@ middlewarify.make(tasks, 'create', createTask);
 ```js
 // ... somewhere far far away in another file
 
-var tasks = require('./tasks');
+const tasks = require('./tasks');
 
 // add middleware to the 'create' operation
 
-tasks.create.use(function(){
+tasks.create.use(function(data) {
   console.log('middleware 1');
+  data.newAttr = 2;
 });
 
 // add a second middleware to the 'create' operation
 // this time use a promise to indicate asynchronicity
-tasks.create.use(function() {
+tasks.create.use(function(data) {
   return new Promise(function(resolve, reject) {
-    console.log('middleware 2');
+    console.log('middleware 2. Title:', data.title);
+    data.secondAttr = 3;
     resolve();
   });
 });
-
-
 ```
 
 ... Invoke all the middleware
 
 ```js
 // ... Invoking them all together
-tasks.create()
-// prints
+tasks.create(data)
+// prints:
 // middleware 1
 // middleware 2
 // createTask Final Fn to be invoked
-    .then(function(val) {
-        console.log(val);
-        // prints: "a value"
+    .then(function(result) {
+        console.log(result);
+        // prints: true
     });
 ```
 
 Invoking the middleware will return a Promise, use the `then` function to determine all middleware including the final function invoked successfully:
 
 ```js
-tasks.create().then(function() {
+tasks.create(data).then(function(result) {
   // all middleware finished.
 }, function(err) {
   // Middleware failed
 });
+```
+
+You may also use Async/Await:
+
+```js
+try {
+    const result = await tasks.create(data);
+} catch (ex) {
+    // handle error.
+}
 ```
 
 ### Using the Before / After / Last Middleware types
@@ -100,9 +113,9 @@ When using the `beforeAfter` option instead of the typical `use()` method three 
 #### Before / After / Last Middleware Example
 
 ```js
-var middlewarify = require('middlewarify');
+const middlewarify = require('middlewarify');
 
-var tasks = module.exports = {};
+const tasks = module.exports = {};
 
 // This is the main callback of your middleware,
 // it will be invoked after all 'before' middleware finish
@@ -151,7 +164,7 @@ The `middlewarify.make()` method will apply the middleware pattern to an Object'
 
 ```js
 // create a Middleware Container
-var crud = {};
+const crud = {};
 middlewarify.make(crud, 'create');
 ```
 
@@ -181,7 +194,7 @@ The Middleware Container by default exposes a `use` hook so you can add any numb
 
 ```js
 // create the Middleware Container
-var crud = {};
+const crud = {};
 middlewarify.make(crud, 'create', fnFinal);
 
 // add 3 middleware functions
@@ -236,7 +249,7 @@ The Middleware Container is nothing but a function that accepts any number of ar
 Any argument passed to the Middleware Container will also be passed to all middleware.
 
 ```js
-var crud = {};
+const crud = {};
 middlewarify.make(crud, 'create');
 
 // run all middleware
@@ -341,9 +354,7 @@ crud.create().then(function(result) {
 
 ## License
 
-Copyright ©2015 Thanasis Polychronakis
-
-Licensed under the [MIT License](LICENSE-MIT)
+Copyright Thanasis Polychronakis, licensed under the [MIT License](LICENSE-MIT).
 
 [grunt]: http://gruntjs.com/
 [Getting Started]: https://github.com/gruntjs/grunt/wiki/Getting-started
