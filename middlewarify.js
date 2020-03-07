@@ -1,13 +1,17 @@
 /**
- * @fileOverview Apply the middleware pattern to a given Object.
+ * @fileoverview Apply the middleware pattern to a given Object.
  */
 
-var __ = require('lodash');
-var Promise = require('bluebird');
+const __ = require('lodash');
+const Promise = require('bluebird');
 
-var middlewarify = module.exports = {};
+const middlewarify = (module.exports = {});
 
-var noopMidd = function(cb) {if (__.isFunction(cb)) cb();};
+const noopMidd = function(cb) {
+  if (__.isFunction(cb)) {
+    cb();
+  }
+};
 
 /** @enum {string} middleware types */
 middlewarify.Type = {
@@ -20,23 +24,22 @@ middlewarify.Type = {
 /**
  * Apply the middleware pattern to the provided object's propert.
  *
- * @param {Object} obj An Object.
+ * @param {object} obj An Object.
  * @param {string} prop The property to apply the middleware pattern on.
  * @param {Function=} optFinalCb Last middleware to call.
- * @param {Object=} optParams Optional parameters.
+ * @param {object=} optParams Optional parameters.
  *   @param {boolean=} beforeAfter set to true to add Before/After hooks
  *     instead of the single use hook.
  */
 middlewarify.make = function(obj, prop, optFinalCb, optParams) {
-
-  var middObj = middlewarify.newMidd();
+  const middObj = middlewarify.newMidd();
 
   if (__.isFunction(optFinalCb)) {
     middObj.mainCallback = optFinalCb;
     middObj.mainCallback.isMain = true;
   }
 
-  var params;
+  let params;
   if (__.isObject(optFinalCb)) {
     params = optFinalCb;
   }
@@ -47,9 +50,9 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
   /**
    * The default parameters object.
    *
-   * @type {Object}
+   * @type {object}
    */
-  var defaultParams = {
+  const defaultParams = {
     beforeAfter: false,
     catchAll: null,
   };
@@ -61,22 +64,38 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
     middObj.beforeMidds = [];
     middObj.afterMidds = [];
     middObj.lastMidds = [];
-    obj[prop].before = middlewarify._use.bind(null, middObj, middlewarify.Type.BEFORE);
-    obj[prop].after = middlewarify._use.bind(null, middObj, middlewarify.Type.AFTER);
-    obj[prop].last = middlewarify._use.bind(null, middObj, middlewarify.Type.LAST);
+    obj[prop].before = middlewarify._use.bind(
+      null,
+      middObj,
+      middlewarify.Type.BEFORE,
+    );
+    obj[prop].after = middlewarify._use.bind(
+      null,
+      middObj,
+      middlewarify.Type.AFTER,
+    );
+    obj[prop].last = middlewarify._use.bind(
+      null,
+      middObj,
+      middlewarify.Type.LAST,
+    );
   } else {
     middObj.midds = [];
-    obj[prop].use = middlewarify._use.bind(null, middObj, middlewarify.Type.USE);
+    obj[prop].use = middlewarify._use.bind(
+      null,
+      middObj,
+      middlewarify.Type.USE,
+    );
   }
 };
 
 /**
  * Create and initialize a new Middleware Object.
  *
- * @return {Object} A new Middleware Object.
+ * @return {object} A new Middleware Object.
  */
 middlewarify.newMidd = function() {
-  var middObj = Object.create(null);
+  const middObj = Object.create(null);
   middObj.mainCallback = noopMidd;
   middObj.mainCallback.isMain = true;
 
@@ -86,15 +105,14 @@ middlewarify.newMidd = function() {
 /**
  * Invokes all the middleware.
  *
- * @param  {Object} middObj Internal midd object.
- * @param  {*...} varArgs Any number of arguments
+ * @param  {object} middObj Internal midd object.
+ * @param  {...*} args Any number of arguments
  * @return {Promise} A promise.
  * @private
  */
-middlewarify._invokeMiddleware = function(middObj) {
-  var args = Array.prototype.slice.call(arguments, 1);
+middlewarify._invokeMiddleware = function(middObj, ...args) {
   return new Promise(function(resolve, reject) {
-    var midds;
+    let midds;
     if (middObj.params.beforeAfter) {
       midds = Array.prototype.slice.call(middObj.beforeMidds);
       midds.push(middObj.mainCallback);
@@ -104,12 +122,12 @@ middlewarify._invokeMiddleware = function(middObj) {
       midds.push(middObj.mainCallback);
     }
 
-    var store = {
+    const store = {
       mainCallbackReturnValue: null,
     };
-    var deferred = {
-      resolve: resolve,
-      reject: reject,
+    const deferred = {
+      resolve,
+      reject,
     };
     middlewarify._fetchAndInvoke(midds, args, store, deferred);
   }).catch(function(err) {
@@ -127,20 +145,26 @@ middlewarify._invokeMiddleware = function(middObj) {
  *
  * @param {Array.<Function>} midds The middleware.
  * @param {Array} args An array of arbitrary arguments, can be empty.
- * @param {Object} store use as store.
- * @param {Object} deferred contains resolve, reject fns.
+ * @param {object} store use as store.
+ * @param {object} deferred contains resolve, reject fns.
  * @param {boolean=} optAfter If next middleware is after the main callback.
  * @return {Promise} A promise.
  * @private
  */
-middlewarify._fetchAndInvoke = function(midds, args, store, deferred, optAfter) {
+middlewarify._fetchAndInvoke = function(
+  midds,
+  args,
+  store,
+  deferred,
+  optAfter,
+) {
   if (!midds.length) {
     return deferred.resolve(store.mainCallbackReturnValue);
   }
 
-  var isAfter = !!optAfter;
+  let isAfter = !!optAfter;
 
-  var midd = midds.shift();
+  const midd = midds.shift();
   Promise.try(midd, args)
     .then(function(val) {
       // check for return value and after-main CB
@@ -164,35 +188,40 @@ middlewarify._fetchAndInvoke = function(midds, args, store, deferred, optAfter) 
     });
 };
 
-
-
 /**
  * Add middleware.
  *
- * @param {Object} middObj Internal midd object.
+ * @param {object} middObj Internal midd object.
  * @param {middlewarify.Type} middType Middleware type.
- * @param {Function|Array.<Function>...} Any combination of function containers.
+ * @param {Function|Array.<Function>...} middlewares Any combination of
+ *    function containers.
  * @private
  */
-middlewarify._use = function(middObj, middType) {
-  var middlewares = Array.prototype.slice.call(arguments, 2);
-  var len = middlewares.length;
-  if (len === 0) return;
+middlewarify._use = function(middObj, middType, ...middlewares) {
+  const len = middlewares.length;
+  if (len === 0) {
+    return;
+  }
 
+  /**
+   * @param {Function} fn Middleware function.
+   */
   function pushMidd(fn) {
-    switch(middType) {
-    case middlewarify.Type.BEFORE:
-      middObj.beforeMidds.push(fn);
-      break;
-    case middlewarify.Type.AFTER:
-      middObj.afterMidds.push(fn);
-      break;
-    case middlewarify.Type.LAST:
-      middObj.lastMidds.push(fn);
-      break;
-    case middlewarify.Type.USE:
-      middObj.midds.push(fn);
-      break;
+    switch (middType) {
+      case middlewarify.Type.BEFORE:
+        middObj.beforeMidds.push(fn);
+        break;
+      case middlewarify.Type.AFTER:
+        middObj.afterMidds.push(fn);
+        break;
+      case middlewarify.Type.LAST:
+        middObj.lastMidds.push(fn);
+        break;
+      case middlewarify.Type.USE:
+        middObj.midds.push(fn);
+        break;
+      default:
+        break;
     }
   }
 
