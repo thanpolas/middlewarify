@@ -1,16 +1,15 @@
 /**
- * @fileOverview middlewarify tests
+ * @fileoverview middlewarify tests
  */
 
-var sinon  = require('sinon');
-var assert = require('chai').assert;
-var Promise = require('bluebird');
-var midd = require('../');
+const sinon = require('sinon');
+const { assert } = require('chai');
+const Promise = require('bluebird');
+const midd = require('../');
 
-var noop = function(){};
+const noop = function() {};
 
 suite('1. Basic Tests', function() {
-
   setup(function() {});
 
   teardown(function() {});
@@ -20,17 +19,24 @@ suite('1. Basic Tests', function() {
   // run by using the mocha --grep "1.1.1" option.
 
   test('1.1 Types Test', function() {
-    var obj = Object.create(null);
+    const obj = Object.create(null);
     midd.make(obj, 'create');
     assert.isFunction(obj.create, 'obj.create should be a function');
     assert.isFunction(obj.create.use, 'obj.create.use should be a function');
-    assert.isFunction(obj.create().then, 'obj.create().then should be a Function');
+    assert.isFunction(
+      obj.create().then,
+      'obj.create().then should be a Function',
+    );
     assert.ok(Promise.is(obj.create()), 'obj.create().then is a Promise');
   });
 });
 
 suite('2. middleware.use() Sequence of invocation Synchronous', function() {
-  var obj, lastMidd, firstMidd, secondMidd, thirdMidd;
+  let obj;
+  let lastMidd;
+  let firstMidd;
+  let secondMidd;
+  let thirdMidd;
   setup(function() {
     obj = Object.create(null);
     lastMidd = sinon.spy();
@@ -40,18 +46,45 @@ suite('2. middleware.use() Sequence of invocation Synchronous', function() {
     midd.make(obj, 'create', lastMidd);
   });
 
-  teardown(function(done){
-    obj.create().then(function() {
-      assert.ok(firstMidd.calledOnce, 'firstMidd should be called only once. Called: ' + firstMidd.callCount);
-      assert.ok(secondMidd.calledOnce, 'secondMidd should be called only once. Called: ' + secondMidd.callCount);
-      assert.ok(thirdMidd.calledOnce, 'thirdMidd should be called only once. Called: ' + thirdMidd.callCount);
-      assert.ok(lastMidd.calledOnce, 'lastMidd should be called only once. Called: ' + lastMidd.callCount);
+  teardown(function(done) {
+    obj
+      .create()
+      .then(function() {
+        assert.ok(
+          firstMidd.calledOnce,
+          `firstMidd should be called only once. Called: ${firstMidd.callCount}`,
+        );
+        assert.ok(
+          secondMidd.calledOnce,
+          `secondMidd should be called only once. Called: ${secondMidd.callCount}`,
+        );
+        assert.ok(
+          thirdMidd.calledOnce,
+          `thirdMidd should be called only once. Called: ${thirdMidd.callCount}`,
+        );
+        assert.ok(
+          lastMidd.calledOnce,
+          `lastMidd should be called only once. Called: ${lastMidd.callCount}`,
+        );
 
-      assert.ok(firstMidd.calledBefore(secondMidd), 'firstMidd should be called before secondMidd');
-      assert.ok(secondMidd.calledAfter(firstMidd), 'secondMidd should be called after firstMidd');
-      assert.ok(thirdMidd.calledAfter(secondMidd), 'thirdMidd should be called after secondMidd');
-      assert.ok(lastMidd.calledAfter(thirdMidd), 'lastMidd should be called after thirdMidd');
-    }).then(done, done);
+        assert.ok(
+          firstMidd.calledBefore(secondMidd),
+          'firstMidd should be called before secondMidd',
+        );
+        assert.ok(
+          secondMidd.calledAfter(firstMidd),
+          'secondMidd should be called after firstMidd',
+        );
+        assert.ok(
+          thirdMidd.calledAfter(secondMidd),
+          'thirdMidd should be called after secondMidd',
+        );
+        assert.ok(
+          lastMidd.calledAfter(thirdMidd),
+          'lastMidd should be called after thirdMidd',
+        );
+      })
+      .then(done, done);
   });
 
   test('2.1 Multiple arguments', function() {
@@ -71,8 +104,15 @@ suite('2. middleware.use() Sequence of invocation Synchronous', function() {
 });
 
 suite('2.10 middleware.use() Sequence of invocation Asynchronous', function() {
-  var obj, lastMidd, firstMidd, secondMidd, thirdMidd;
-  var spyLastMidd, spyFirstMidd, spySecondMidd, spyThirdMidd;
+  let obj;
+  let lastMidd;
+  let firstMidd;
+  let secondMidd;
+  let thirdMidd;
+  let spyLastMidd;
+  let spyFirstMidd;
+  let spySecondMidd;
+  let spyThirdMidd;
 
   setup(function() {
     spyLastMidd = sinon.spy();
@@ -81,25 +121,60 @@ suite('2.10 middleware.use() Sequence of invocation Asynchronous', function() {
     spyThirdMidd = sinon.spy();
 
     obj = Object.create(null);
-    lastMidd = function() {spyLastMidd();};
-    firstMidd = function() {spyFirstMidd();};
-    secondMidd = function() {spySecondMidd();};
-    thirdMidd = function() {spyThirdMidd();};
+    lastMidd = function() {
+      spyLastMidd();
+    };
+    firstMidd = function() {
+      spyFirstMidd();
+    };
+    secondMidd = function() {
+      spySecondMidd();
+    };
+    thirdMidd = function() {
+      spyThirdMidd();
+    };
     midd.make(obj, 'create', lastMidd);
   });
 
   teardown(function(done) {
-    obj.create().then(function(){
-      assert.ok(spyFirstMidd.calledOnce, 'firstMidd should be called only once');
-      assert.ok(spySecondMidd.calledOnce, 'secondMidd should be called only once');
-      assert.ok(spyThirdMidd.calledOnce, 'thirdMidd should be called only once');
-      assert.ok(spyLastMidd.calledOnce, 'lastMidd should be called only once');
+    obj
+      .create()
+      .then(function() {
+        assert.ok(
+          spyFirstMidd.calledOnce,
+          'firstMidd should be called only once',
+        );
+        assert.ok(
+          spySecondMidd.calledOnce,
+          'secondMidd should be called only once',
+        );
+        assert.ok(
+          spyThirdMidd.calledOnce,
+          'thirdMidd should be called only once',
+        );
+        assert.ok(
+          spyLastMidd.calledOnce,
+          'lastMidd should be called only once',
+        );
 
-      assert.ok(spyFirstMidd.calledBefore(spySecondMidd), 'firstMidd should be called before secondMidd');
-      assert.ok(spySecondMidd.calledAfter(spyFirstMidd), 'secondMidd should be called after firstMidd');
-      assert.ok(spyThirdMidd.calledAfter(spySecondMidd), 'thirdMidd should be called after secondMidd');
-      assert.ok(spyLastMidd.calledAfter(spyThirdMidd), 'lastMidd should be called after thirdMidd');
-    }).then(done, done);
+        assert.ok(
+          spyFirstMidd.calledBefore(spySecondMidd),
+          'firstMidd should be called before secondMidd',
+        );
+        assert.ok(
+          spySecondMidd.calledAfter(spyFirstMidd),
+          'secondMidd should be called after firstMidd',
+        );
+        assert.ok(
+          spyThirdMidd.calledAfter(spySecondMidd),
+          'thirdMidd should be called after secondMidd',
+        );
+        assert.ok(
+          spyLastMidd.calledAfter(spyThirdMidd),
+          'lastMidd should be called after thirdMidd',
+        );
+      })
+      .then(done, done);
   });
 
   test('2.10.1 Multiple arguments', function() {
@@ -119,16 +194,24 @@ suite('2.10 middleware.use() Sequence of invocation Asynchronous', function() {
 });
 
 suite('3. middleware() argument piping', function() {
-  var obj, lastMidd, firstMidd, secondMidd, thirdMidd;
+  let obj;
+  let lastMidd;
+  let firstMidd;
+  let secondMidd;
+  let thirdMidd;
 
-  teardown(function(){
-  });
+  teardown(function() {});
 
   test('3.1 Three arguments', function(done) {
+    /**
+     * @param arg1
+     * @param arg2
+     * @param arg3
+     */
     function checkMiddlewareArgs(arg1, arg2, arg3) {
       assert.equal(arg1, 1);
-      assert.deepEqual(arg2, {a: 1});
-      assert.deepEqual(arg3, {b: 2});
+      assert.deepEqual(arg2, { a: 1 });
+      assert.deepEqual(arg3, { b: 2 });
     }
 
     obj = Object.create(null);
@@ -139,18 +222,25 @@ suite('3. middleware() argument piping', function() {
     midd.make(obj, 'create', lastMidd);
     obj.create.use(firstMidd, secondMidd, thirdMidd);
 
-    var foo = {a: 1};
-    var bar = {b: 2};
-    obj.create(1, foo, bar).then(function() {
-      done();
-    }, done).then(null, done);
+    const foo = { a: 1 };
+    const bar = { b: 2 };
+    obj
+      .create(1, foo, bar)
+      .then(function() {
+        done();
+      }, done)
+      .then(null, done);
   });
   test('3.2 Mutating arguments', function(done) {
-    var count = 1;
+    let count = 1;
+    /**
+     * @param foo
+     * @param bar
+     */
     function checkMiddlewareArgs(foo, bar) {
-      foo.a++;
-      bar.b++;
-      count++;
+      foo.a += 1;
+      bar.b += 1;
+      count += 1;
       assert.equal(foo.a, count);
       assert.deepEqual(bar.b, count + 1);
     }
@@ -163,19 +253,28 @@ suite('3. middleware() argument piping', function() {
     midd.make(obj, 'create', lastMidd);
     obj.create.use(firstMidd, secondMidd, thirdMidd);
 
-    var foo = {a: 1};
-    var bar = {b: 2};
-    obj.create(foo, bar).then(function() {
-      done();
-    }, done).then(null, done);
+    const foo = { a: 1 };
+    const bar = { b: 2 };
+    obj
+      .create(foo, bar)
+      .then(function() {
+        done();
+      }, done)
+      .then(null, done);
   });
 });
 
 suite('4 middleware returning values', function() {
+  /**
+   * @param returnValue
+   * @param done
+   */
   function invoke(returnValue, done) {
-    var lastMidd = function() {};
-    var firstMidd = function() {return returnValue;};
-    var obj = Object.create(null);
+    const lastMidd = function() {};
+    const firstMidd = function() {
+      return returnValue;
+    };
+    const obj = Object.create(null);
     midd.make(obj, 'create', lastMidd);
     obj.create.use(firstMidd);
     obj.create().then(done, done);
@@ -187,6 +286,7 @@ suite('4 middleware returning values', function() {
     invoke(null, done);
   });
   test('4.3 return void', function(done) {
+    // eslint-disable-next-line no-void
     invoke(void 0, done);
   });
   test('4.4 return boolean false', function(done) {
@@ -214,7 +314,7 @@ suite('4 middleware returning values', function() {
     invoke([], done);
   });
   test('4.12 return function', function(done) {
-    invoke(function(){}, done);
+    invoke(function() {}, done);
   });
   test('4.13 return regex', function(done) {
     invoke(/a/, done);
@@ -222,89 +322,110 @@ suite('4 middleware returning values', function() {
   test('4.13 return Error instance', function(done) {
     invoke(new Error('inst'), done);
   });
-
 });
 
-suite('5. Failing middleware cases', function(){
-  var obj;
-  setup(function(){
+suite('5. Failing middleware cases', function() {
+  let obj;
+  setup(function() {
     obj = Object.create(null);
     midd.make(obj, 'create');
   });
 
-  test('5.1.2 middleware accepts throw error', function(done){
-    var custObj = Object.create(null);
+  test('5.1.2 middleware accepts throw error', function(done) {
+    const custObj = Object.create(null);
     midd.make(custObj, 'create');
-    custObj.create.use(function(){
+    custObj.create.use(function() {
       throw new Error('an error');
     });
-    custObj.create().then(noop, function(err){
-      assert.instanceOf(err, Error, '"err" should be instanceOf Error');
-      assert.equal(err.message, 'an error', 'Error message should match');
-      done();
-    }).then(null, done);
-  });
-  test('5.1.3 main callback accepts throw error', function(done){
-    var custObj = Object.create(null);
-    midd.make(custObj, 'create', function() {
-      throw new Error('an error');
-    });
-    custObj.create().then(noop, function(err){
-      assert.instanceOf(err, Error, '"err" should be instanceOf Error');
-      assert.equal(err.message, 'an error', 'Error message should match');
-      done();
-    }).then(null, done);
-  });
-
-  test('5.1.4 Catch All option', function(done) {
-    var custObj = Object.create(null);
-    midd.make(custObj, 'create', function() {
-      throw new Error('an error');
-    }, {
-      catchAll: function(err) {
+    custObj
+      .create()
+      .then(noop, function(err) {
         assert.instanceOf(err, Error, '"err" should be instanceOf Error');
         assert.equal(err.message, 'an error', 'Error message should match');
         done();
-      },
+      })
+      .then(null, done);
+  });
+  test('5.1.3 main callback accepts throw error', function(done) {
+    const custObj = Object.create(null);
+    midd.make(custObj, 'create', function() {
+      throw new Error('an error');
     });
-    custObj.create();
+    custObj
+      .create()
+      .then(noop, function(err) {
+        assert.instanceOf(err, Error, '"err" should be instanceOf Error');
+        assert.equal(err.message, 'an error', 'Error message should match');
+        done();
+      })
+      .then(null, done);
   });
 
+  test('5.1.4 Catch All option', function(done) {
+    const custObj = Object.create(null);
+    midd.make(
+      custObj,
+      'create',
+      function() {
+        throw new Error('an error');
+      },
+      {
+        catchAll(err) {
+          assert.instanceOf(err, Error, '"err" should be instanceOf Error');
+          assert.equal(err.message, 'an error', 'Error message should match');
+          done();
+        },
+      },
+    );
+    custObj.create();
+  });
 });
 
 suite('3.5.2 Main Callback arguments pipes to final promise', function() {
-  var obj;
+  let obj;
+  /**
+   * @param returnValue
+   */
   function invoke(returnValue) {
     obj = Object.create(null);
-    var mainMidd = function() {
+    const mainMidd = function() {
       return returnValue;
     };
-    var firstMidd = sinon.spy();
-    var secondMidd = sinon.spy();
-    var thirdMidd = sinon.spy();
+    const firstMidd = sinon.spy();
+    const secondMidd = sinon.spy();
+    const thirdMidd = sinon.spy();
     midd.make(obj, 'create', mainMidd);
     obj.create.use(firstMidd, secondMidd, thirdMidd);
   }
   test('3.5.2.1 Using a promise', function(done) {
-    var prom = new Promise(function(resolve){
+    const prom = new Promise(function(resolve) {
       resolve('value');
     });
     invoke(prom);
 
-    obj.create().then(function(val) {
-      assert.equal(val, 'value');
-    }).then(done, done);
+    obj
+      .create()
+      .then(function(val) {
+        assert.equal(val, 'value');
+      })
+      .then(done, done);
   });
   test('3.5.2.2 Using a string', function(done) {
     invoke('value');
-    obj.create().then(function(val) {
-      assert.equal(val, 'value');
-    }).then(done, done);
+    obj
+      .create()
+      .then(function(val) {
+        assert.equal(val, 'value');
+      })
+      .then(done, done);
   });
   test('3.5.2.3 Using a number', function(done) {
     invoke(9);
-    obj.create().then(function(val) {
-      assert.equal(val, 9);
-    }).then(done, done);
+    obj
+      .create()
+      .then(function(val) {
+        assert.equal(val, 9);
+      })
+      .then(done, done);
   });
 });

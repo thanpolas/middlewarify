@@ -1,0 +1,9 @@
+rules:
+  no-console: 'off'
+  jsdoc/require-jsdoc: 'off'
+
+globals:
+  teardown: readonly
+  suite: readonly
+  test: readonly
+  setup: readonly
