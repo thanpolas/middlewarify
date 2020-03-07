@@ -71,7 +71,7 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
 };
 
 /**
- * Create an initialize a new Middleware Object.
+ * Create and initialize a new Middleware Object.
  *
  * @return {Object} A new Middleware Object.
  */
