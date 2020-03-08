@@ -34,6 +34,9 @@ rules:
 
 settings:
   jsdoc:
+    preferredTypes:
+      object: Object
+
     tagNamePreference:
       constant: const
       file: fileoverview
