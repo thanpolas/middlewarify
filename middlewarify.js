@@ -113,7 +113,7 @@ middlewarify.newMidd = function() {
  * @private
  */
 middlewarify._invokeMiddleware = (middObj, ...args) => {
-  const midds = middlewarify._prepareMiddleware();
+  const midds = middlewarify._prepareMiddleware(middObj);
 
   const invokeState = {
     mainCallbackReturnValue: null,

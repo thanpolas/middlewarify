@@ -221,7 +221,7 @@ suite('3. middleware() argument piping', function() {
   });
 });
 
-suite('4 middleware returning values', function() {
+suite('4 middleware returning values should be ignored', function() {
   /**
    * Invokes the middleware.
    *
@@ -236,54 +236,55 @@ suite('4 middleware returning values', function() {
     const obj = Object.create(null);
     midd.make(obj, 'create', lastMidd);
     obj.create.use(firstMidd);
-    return obj.create();
+    const ret = obj.create();
+    return ret;
   }
   test('4.1 return undefined', function() {
-    assert.equal(invoke(undefined), undefined);
+    assert.isUndefined(invoke(undefined));
   });
   test('4.2 return null', function() {
-    assert.equal(invoke(null));
+    assert.isUndefined(invoke(null));
   });
   test('4.3 return void', function() {
     // eslint-disable-next-line no-void
-    assert.equal(invoke(void 0), void 0);
+    assert.isUndefined(invoke(void 0));
   });
   test('4.4 return boolean false', function() {
-    assert.equal(invoke(false), false);
+    assert.isUndefined(invoke(false));
   });
   test('4.5 return boolean true', function() {
-    assert.equal(invoke(true), true);
+    assert.isUndefined(invoke(true));
   });
   test('4.6 return empty object', function() {
-    assert.deepEqual(invoke({}), {});
+    assert.isUndefined(invoke({}));
   });
   test('4.7 return string', function() {
-    assert.equal(invoke('one'), 'one');
+    assert.isUndefined(invoke('one'));
   });
   test('4.8 return number', function() {
-    assert.equal(invoke(7), 7);
+    assert.isUndefined(invoke(7));
   });
   test('4.9 return number 0', function() {
-    assert.equal(invoke(0), 0);
+    assert.isUndefined(invoke(0));
   });
   test('4.10 return NaN', function() {
     // eslint-disable-next-line no-restricted-globals
-    assert.equal(isNaN(invoke(NaN)), true);
+    assert.isUndefined(invoke(NaN));
   });
   test('4.11 return empty Array', function() {
-    assert.deepEqual(invoke([]), []);
+    assert.isUndefined(invoke([]));
   });
   test('4.12 return function', function() {
     const fn = function() {};
-    assert.equal(invoke(fn), fn);
+    assert.isUndefined(invoke(fn));
   });
   test('4.13 return regex', function() {
     const re = /a/;
-    assert.equal(invoke(re), re);
+    assert.isUndefined(invoke(re));
   });
   test('4.13 return Error instance', function() {
     const err = new Error('inst');
-    assert.equal(invoke(err), err);
+    assert.isUndefined(invoke(err));
   });
 });
 
