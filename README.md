@@ -329,6 +329,10 @@ crud.create().then(function(result) {
 
 ## Release History
 
+-   **v2.0.0**, _09 Mar 2020_ **Breaking Changes**
+    -   Middlewarify will now execute all middleware synchronously by default.
+    -   Introduced new option `async` to enable the asynchronous invocation.
+    -   Removed bluebird dependency, we are 100% native Promises.
 -   **v1.0.1**, _30 Jan 2020_
     -   Updated all dependencies to latest.
 -   **v1.0.0**, _23 Jul 2015_
