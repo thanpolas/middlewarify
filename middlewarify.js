@@ -203,7 +203,7 @@ middlewarify._syncShiftAndInvoke = function(
   // If a function is of type "after" (invoked after the main fn)
   // then we use its return value -if one exists- as the value to be returned
   // for the entire middleware invocation.
-  if (isAfter && typeof val !== 'undefined') {
+  if (isAfter && typeof retVal !== 'undefined') {
     invokeState.mainCallbackReturnValue = retVal;
     args.splice(-1, 1, retVal);
   }
@@ -214,7 +214,7 @@ middlewarify._syncShiftAndInvoke = function(
     isAfter = true;
   }
 
-  middlewarify._syncShiftAndInvoke(midds, args, invokeState, isAfter);
+  return middlewarify._syncShiftAndInvoke(midds, args, invokeState, isAfter);
 };
 
 /**
