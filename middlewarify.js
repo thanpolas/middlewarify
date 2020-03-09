@@ -118,8 +118,7 @@ middlewarify._invokeMiddleware = (middObj, ...args) => {
   const invokeState = {
     mainCallbackReturnValue: null,
   };
-
-  if (middObj.async === true) {
+  if (middObj.params.async === true) {
     try {
       return middlewarify
         ._asyncShiftAndInvoke(midds, args, invokeState)
@@ -127,12 +126,12 @@ middlewarify._invokeMiddleware = (middObj, ...args) => {
     } catch (ex) {
       middlewarify._handleInvokeError(middObj, ex);
     }
-  } else {
-    try {
-      return middlewarify._syncShiftAndInvoke(midds, args, invokeState);
-    } catch (ex) {
-      middlewarify._handleInvokeError(middObj, ex);
-    }
+  }
+
+  try {
+    return middlewarify._syncShiftAndInvoke(midds, args, invokeState);
+  } catch (ex) {
+    middlewarify._handleInvokeError(middObj, ex);
   }
 };
 
@@ -226,6 +225,7 @@ middlewarify._syncShiftAndInvoke = function(
  * @param {Array} args An array of arbitrary arguments, can be empty.
  * @param {Object} invokeState The current invocation state.
  * @param {boolean=} optAfter If next middleware is after the main callback.
+ * @return {Promise} A promise with the ultimate response.
  * @private
  */
 middlewarify._asyncShiftAndInvoke = async function(
