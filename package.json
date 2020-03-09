@@ -15,9 +15,6 @@
     "url": "https://github.com/thanpolas/middlewarify/issues"
   },
   "license": "MIT",
-  "contributors": [
-    {}
-  ],
   "engines": {
     "node": ">= 10"
   },
