@@ -16,9 +16,6 @@ const midd = require('../');
 function applyTests(num, middMethod, middOpts) {
   let middleware;
   setup(function() {
-    if (middMethod !== 'use') {
-      middOpts = { beforeAfter: true };
-    }
     middleware = Object.create(null);
     midd.make(
       middleware,
@@ -36,7 +33,8 @@ function applyTests(num, middMethod, middOpts) {
         resolve();
       });
     });
-    middleware.create().then(done, done);
+    const retVal = middleware.create();
+    retVal.then(done, done);
   });
   test(`7.${num}.2 propagates error`, function(done) {
     middleware.create[middMethod](function() {
@@ -154,19 +152,24 @@ function applyTests(num, middMethod, middOpts) {
 
 suite('7. Promise Interface', function() {
   suite('7.1 Middleware with use()', function() {
-    applyTests(1, 'use');
+    applyTests(1, 'use', { async: true });
   });
   suite('7.2 Middleware with before()', function() {
-    applyTests(2, 'before', { beforeAfter: true });
+    applyTests(2, 'before', { beforeAfter: true, async: true });
   });
   suite('7.3 Middleware with after()', function() {
-    applyTests(3, 'after', { beforeAfter: true });
+    applyTests(3, 'after', { beforeAfter: true, async: true });
   });
   suite('7.8 Middleware with use() check', function() {
     const newMidd = Object.create(null);
-    midd.make(newMidd, 'create', function() {
-      return Promise.resolve();
-    });
+    midd.make(
+      newMidd,
+      'create',
+      function() {
+        return Promise.resolve();
+      },
+      { async: true },
+    );
 
     test('7.8.3 propagates error message', function(done) {
       newMidd.create.use(function() {
