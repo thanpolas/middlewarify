@@ -3,7 +3,6 @@
  */
 const sinon = require('sinon');
 const { assert } = require('chai');
-const BPromise = require('bluebird');
 
 const midd = require('../');
 
@@ -204,9 +203,6 @@ suite('8.3. middleware() argument piping', function() {
       .then(null, done);
   });
   suite('8.3.2 Main Callback arguments pipes to final promise', function() {
-    /**
-     * @param returnValue
-     */
     function invoke(returnValue) {
       obj = Object.create(null);
       mainMidd = function() {

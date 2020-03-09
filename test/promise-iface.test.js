@@ -2,7 +2,6 @@
  * @fileoverview Promise Interface tests
  */
 const { assert } = require('chai');
-const Promise = require('bluebird');
 
 const midd = require('../');
 

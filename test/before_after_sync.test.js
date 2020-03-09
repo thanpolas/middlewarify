@@ -3,11 +3,8 @@
  */
 const sinon = require('sinon');
 const { assert } = require('chai');
-const Promise = require('bluebird');
 
 const midd = require('../');
-
-const noop = function() {};
 
 suite('6. Before / After / Last Synchronous middleware', function() {
   setup(function() {});
