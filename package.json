@@ -15,29 +15,34 @@
     "url": "https://github.com/thanpolas/middlewarify/issues"
   },
   "license": "MIT",
-  "contributors": [
-    {}
-  ],
   "engines": {
     "node": ">= 10"
   },
   "scripts": {
-    "test": "mocha -u tdd -R spec test/",
-    "release": "grunt release:patch",
-    "release:minor": "grunt release:minor",
-    "release:major": "grunt release:major"
+    "test": "npm run eslint; mocha -u tdd -R spec test/",
+    "eslint": "eslint middlewarify.js test",
+    "release": "release-it --ci",
+    "release:minor": "release-it minor --ci",
+    "release:major": "release-it major --ci"
   },
   "dependencies": {
     "lodash": "~4.17.15",
-    "async": "~3.1.1",
-    "bluebird": "~3.7.2"
+    "async": "~3.2.0"
   },
   "devDependencies": {
-    "sinon": "~8.1.1",
-    "mocha": "~7.0.1",
     "chai": "~4.2.0",
-    "grunt": "~1.0.4",
-    "grunt-release": "~0.14.0"
+    "eslint": "~6.8.0",
+    "eslint-config-airbnb-base": "~14.0.0",
+    "eslint-config-prettier": "~6.10.0",
+    "eslint-plugin-import": "~2.20.1",
+    "eslint-plugin-jest": "~23.8.2",
+    "eslint-plugin-jsdoc": "~22.0.0",
+    "eslint-plugin-prettier": "~3.1.2",
+    "eslint-plugin-security": "~1.4.0",
+    "mocha": "~7.1.0",
+    "prettier": "~1.19.1",
+    "release-it": "^13.0.2",
+    "sinon": "~9.0.0"
   },
   "keywords": [
     "middleware",
