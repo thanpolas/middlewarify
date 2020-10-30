@@ -6,7 +6,7 @@ const __ = require('lodash');
 
 const middlewarify = (module.exports = {});
 
-const noopMidd = function(cb) {
+const noopMidd = function (cb) {
   if (__.isFunction(cb)) {
     cb();
   }
@@ -21,7 +21,7 @@ middlewarify.Type = {
 };
 
 /**
- * Apply the middleware pattern to the provided object's propert.
+ * Apply the middleware pattern to the provided object's property.
  *
  * @param {Object} obj An Object.
  * @param {string} prop The property to apply the middleware pattern on.
@@ -32,7 +32,7 @@ middlewarify.Type = {
  * @param {Function=} optParams.catchAll Error catchall function.
  * @param {boolean=} optParams.async Set to true to enable async mode.
  */
-middlewarify.make = function(obj, prop, optFinalCb, optParams) {
+middlewarify.make = function (obj, prop, optFinalCb, optParams) {
   const middObj = middlewarify.newMidd();
 
   if (__.isFunction(optFinalCb)) {
@@ -96,7 +96,7 @@ middlewarify.make = function(obj, prop, optFinalCb, optParams) {
  *
  * @return {Object} A new Middleware Object.
  */
-middlewarify.newMidd = function() {
+middlewarify.newMidd = function () {
   const middObj = Object.create(null);
   middObj.mainCallback = noopMidd;
   middObj.mainCallback.isMain = true;
@@ -159,7 +159,7 @@ middlewarify._handleInvokeError = (middObj, ex) => {
  * @return {Array.<Function>} The middleware to be invoked in sequence.
  * @private
  */
-middlewarify._prepareMiddleware = middObj => {
+middlewarify._prepareMiddleware = (middObj) => {
   let midds;
   if (middObj.params.beforeAfter) {
     midds = Array.prototype.slice.call(middObj.beforeMidds);
@@ -184,7 +184,7 @@ middlewarify._prepareMiddleware = middObj => {
  * @return {Promise} A promise.
  * @private
  */
-middlewarify._syncShiftAndInvoke = function(
+middlewarify._syncShiftAndInvoke = function (
   midds,
   args,
   invokeState,
@@ -228,7 +228,7 @@ middlewarify._syncShiftAndInvoke = function(
  * @return {Promise} A promise with the ultimate response.
  * @private
  */
-middlewarify._asyncShiftAndInvoke = async function(
+middlewarify._asyncShiftAndInvoke = async function (
   midds,
   args,
   invokeState,
@@ -270,7 +270,7 @@ middlewarify._asyncShiftAndInvoke = async function(
  *    function containers.
  * @private
  */
-middlewarify._use = function(middObj, middType, ...middlewares) {
+middlewarify._use = function (middObj, middType, ...middlewares) {
   const len = middlewares.length;
   if (len === 0) {
     return;
@@ -298,9 +298,9 @@ middlewarify._use = function(middObj, middType, ...middlewares) {
     }
   }
 
-  middlewares.forEach(function(middleware) {
+  middlewares.forEach(function (middleware) {
     if (Array.isArray(middleware)) {
-      middleware.forEach(function(argFn) {
+      middleware.forEach(function (argFn) {
         if (__.isFunction(argFn)) {
           pushMidd(argFn);
         }

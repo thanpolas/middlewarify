@@ -4,20 +4,20 @@
 const sinon = require('sinon');
 const { assert } = require('chai');
 
-const midd = require('../');
+const midd = require('..');
 
-const noop = function() {};
+const noop = function () {};
 
-suite('8. Before / After / Last middleware Asynchronous', function() {
-  setup(function() {});
+suite('8. Before / After / Last middleware Asynchronous', function () {
+  setup(function () {});
 
-  teardown(function() {});
+  teardown(function () {});
 
   // The numbering (e.g. 1.1.1) has nothing to do with order
   // The purpose is to provide a unique string so specific tests are
   // run by using the mocha --grep "1.1.1" option.
 
-  test('8.1 Types Test', function() {
+  test('8.1 Types Test', function () {
     const obj = Object.create(null);
     midd.make(obj, 'create', {
       beforeAfter: true,
@@ -46,7 +46,7 @@ suite('8. Before / After / Last middleware Asynchronous', function() {
   });
 });
 
-suite('8.2. middleware before/after Sequence of invocation', function() {
+suite('8.2. middleware before/after Sequence of invocation', function () {
   let obj;
   let midd1;
   let midd2;
@@ -57,7 +57,7 @@ suite('8.2. middleware before/after Sequence of invocation', function() {
   let middFinal;
   let fnPayload;
 
-  setup(function() {
+  setup(function () {
     obj = Object.create(null);
     midd1 = sinon.spy();
     midd2 = sinon.spy();
@@ -70,10 +70,10 @@ suite('8.2. middleware before/after Sequence of invocation', function() {
     midd.make(obj, 'create', fnPayload, { beforeAfter: true, async: true });
   });
 
-  teardown(function(done) {
+  teardown(function (done) {
     obj
       .create()
-      .then(function() {
+      .then(function () {
         assert.ok(
           midd1.calledOnce,
           `midd1 called only once, called: ${midd1.callCount}`,
@@ -124,12 +124,12 @@ suite('8.2. middleware before/after Sequence of invocation', function() {
       .then(done, done);
   });
 
-  test('8.2.1 Multiple arguments', function() {
+  test('8.2.1 Multiple arguments', function () {
     obj.create.before(midd1, midd2, midd3);
     obj.create.last(middFinal);
     obj.create.after(midd4, midd5, midd6);
   });
-  test('8.2.2 Multiple calls', function() {
+  test('8.2.2 Multiple calls', function () {
     obj.create.last(middFinal);
     obj.create.before(midd1);
     obj.create.before(midd2);
@@ -138,30 +138,30 @@ suite('8.2. middleware before/after Sequence of invocation', function() {
     obj.create.after(midd5);
     obj.create.after(midd6);
   });
-  test('8.2.3 An array', function() {
+  test('8.2.3 An array', function () {
     obj.create.before([midd1, midd2, midd3]);
     obj.create.last([middFinal]);
     obj.create.after([midd4, midd5, midd6]);
   });
-  test('8.2.4 Array mixed with arg', function() {
+  test('8.2.4 Array mixed with arg', function () {
     obj.create.before([midd1, midd2], midd3);
     obj.create.last(middFinal);
     obj.create.after([midd4, midd5], midd6);
   });
 });
 
-suite('8.3. middleware() argument piping', function() {
+suite('8.3. middleware() argument piping', function () {
   let obj;
   let mainMidd;
   let firstMidd;
   let secondMidd;
   let thirdMidd;
   let lastMidd;
-  setup(function() {});
+  setup(function () {});
 
-  teardown(function() {});
+  teardown(function () {});
 
-  test('8.3.1 Three arguments', function(done) {
+  test('8.3.1 Three arguments', function (done) {
     obj = Object.create(null);
     mainMidd = sinon.spy();
     firstMidd = sinon.spy();
@@ -177,7 +177,7 @@ suite('8.3. middleware() argument piping', function() {
     const bar = { b: 2 };
     obj
       .create(1, foo, bar)
-      .then(function() {
+      .then(function () {
         assert.ok(
           firstMidd.alwaysCalledWith(1, foo, bar),
           'firstMidd should be invoked with these arguments',
@@ -202,10 +202,10 @@ suite('8.3. middleware() argument piping', function() {
       }, done)
       .then(null, done);
   });
-  suite('8.3.2 Main Callback arguments pipes to final promise', function() {
+  suite('8.3.2 Main Callback arguments pipes to final promise', function () {
     function invoke(returnValue) {
       obj = Object.create(null);
-      mainMidd = function() {
+      mainMidd = function () {
         return returnValue;
       };
       firstMidd = sinon.spy();
@@ -215,33 +215,33 @@ suite('8.3. middleware() argument piping', function() {
       obj.create.before(firstMidd, secondMidd);
       obj.create.after(thirdMidd);
     }
-    test('8.3.2.1 Using a promise', function(done) {
-      const prom = new Promise(function(resolve) {
+    test('8.3.2.1 Using a promise', function (done) {
+      const prom = new Promise(function (resolve) {
         resolve('value');
       });
       invoke(prom);
 
       obj
         .create()
-        .then(function(val) {
+        .then(function (val) {
           assert.equal(val, 'value');
         })
         .then(done, done);
     });
-    test('8.3.2.2 Using a string', function(done) {
+    test('8.3.2.2 Using a string', function (done) {
       invoke('value');
       obj
         .create()
-        .then(function(val) {
+        .then(function (val) {
           assert.equal(val, 'value');
         })
         .then(done, done);
     });
-    test('8.3.2.3 Using a number', function(done) {
+    test('8.3.2.3 Using a number', function (done) {
       invoke(9);
       obj
         .create()
-        .then(function(val) {
+        .then(function (val) {
           assert.equal(val, 9);
         })
         .then(done, done);
@@ -249,20 +249,20 @@ suite('8.3. middleware() argument piping', function() {
   });
 });
 
-suite('8.5. Failing middleware cases', function() {
+suite('8.5. Failing middleware cases', function () {
   let obj;
-  setup(function() {
+  setup(function () {
     obj = Object.create(null);
     midd.make(obj, 'create', { beforeAfter: true, async: true });
   });
-  test('8.5.1.1 Before middleware throws an error', function(done) {
-    obj.create.before(function() {
+  test('8.5.1.1 Before middleware throws an error', function (done) {
+    obj.create.before(function () {
       throw new Error('an error');
     });
 
     obj
       .create()
-      .then(null, function(err) {
+      .then(null, function (err) {
         assert.instanceOf(err, Error);
         assert.equal(err.message, 'an error');
         done();
@@ -270,14 +270,14 @@ suite('8.5. Failing middleware cases', function() {
       .then(null, done);
   });
 
-  test('8.5.1.1.2 After middleware throws an error', function(done) {
-    obj.create.after(function() {
+  test('8.5.1.1.2 After middleware throws an error', function (done) {
+    obj.create.after(function () {
       throw new Error('an error');
     });
 
     obj
       .create()
-      .then(null, function(err) {
+      .then(null, function (err) {
         assert.instanceOf(err, Error);
         assert.equal(err.message, 'an error');
         done();
@@ -285,12 +285,12 @@ suite('8.5. Failing middleware cases', function() {
       .then(null, done);
   });
 
-  test('8.5.1.2 Main callback throws an error', function(done) {
+  test('8.5.1.2 Main callback throws an error', function (done) {
     const custObj = Object.create(null);
     midd.make(
       custObj,
       'create',
-      function() {
+      function () {
         throw new Error('an error');
       },
       { beforeAfter: true, async: true },
@@ -300,7 +300,7 @@ suite('8.5. Failing middleware cases', function() {
       .create()
       .then(
         noop,
-        function(err) {
+        function (err) {
           assert.instanceOf(err, Error, '"err" should be instanceOf Error');
           assert.equal(err.message, 'an error', 'Error message should match');
           done();
@@ -309,10 +309,10 @@ suite('8.5. Failing middleware cases', function() {
       )
       .then(null, done);
   });
-  test('8.5.1.3 Main callback throws an error async', function(done) {
+  test('8.5.1.3 Main callback throws an error async', function (done) {
     function promiseAsyncReject() {
-      return new Promise(function(resolve, reject) {
-        setTimeout(function() {
+      return new Promise(function (resolve, reject) {
+        setTimeout(function () {
           reject(new Error('an error'));
         });
       });
@@ -322,8 +322,8 @@ suite('8.5. Failing middleware cases', function() {
     midd.make(
       custObj,
       'create',
-      function() {
-        return promiseAsyncReject().catch(function(err) {
+      function () {
+        return promiseAsyncReject().catch(function (err) {
           throw err;
         });
       },
@@ -334,7 +334,7 @@ suite('8.5. Failing middleware cases', function() {
       .create()
       .then(
         noop,
-        function(err) {
+        function (err) {
           assert.instanceOf(err, Error, '"err" should be instanceOf Error');
           assert.equal(err.message, 'an error', 'Error message should match');
           done();
@@ -344,18 +344,18 @@ suite('8.5. Failing middleware cases', function() {
       .then(null, done);
   });
 });
-suite('8.6. Resolving Value propagation to After middl', function() {
+suite('8.6. Resolving Value propagation to After middl', function () {
   let obj;
-  setup(function() {
+  setup(function () {
     obj = Object.create(null);
   });
-  test('8.6.1 resolving value gets passed as an extra argument by promise', function(done) {
+  test('8.6.1 resolving value gets passed as an extra argument by promise', function (done) {
     midd.make(
       obj,
       'create',
-      function() {
-        return new Promise(function(resolve) {
-          setTimeout(function() {
+      function () {
+        return new Promise(function (resolve) {
+          setTimeout(function () {
             resolve('abc');
           });
         });
@@ -363,38 +363,38 @@ suite('8.6. Resolving Value propagation to After middl', function() {
       { beforeAfter: true, async: true },
     );
 
-    obj.create.after(function(arg1, arg2, resolveValue) {
+    obj.create.after(function (arg1, arg2, resolveValue) {
       assert.equal(resolveValue, 'abc');
     });
     obj.create(1, 2).then(done.bind(null, null), done);
   });
-  test('8.6.2 resolving value gets passed as an extra argument by returning', function(done) {
+  test('8.6.2 resolving value gets passed as an extra argument by returning', function (done) {
     midd.make(
       obj,
       'create',
-      function() {
+      function () {
         return 'abc';
       },
       { beforeAfter: true, async: true },
     );
 
-    obj.create.after(function(arg1, arg2, resolveValue) {
+    obj.create.after(function (arg1, arg2, resolveValue) {
       assert.equal(resolveValue, 'abc');
     });
     obj.create(1, 2).then(done.bind(null, null), done);
   });
 });
 
-suite('8.7 Unhandled errors', function() {
+suite('8.7 Unhandled errors', function () {
   let obj;
-  setup(function() {
+  setup(function () {
     obj = Object.create(null);
   });
-  test('8.7.1 Throwing errors does not cause Unhandled exceptions', function(done) {
+  test('8.7.1 Throwing errors does not cause Unhandled exceptions', function (done) {
     midd.make(
       obj,
       'create',
-      async function() {
+      async function () {
         throw new Error('Boo');
       },
       { beforeAfter: true, async: true },
@@ -402,15 +402,15 @@ suite('8.7 Unhandled errors', function() {
 
     obj
       .create()
-      .catch(function(err) {
+      .catch(function (err) {
         assert.equal(err.message, 'Boo');
         assert.instanceOf(err, Error);
       })
       .then(done, done);
   });
-  test('8.7.2 Throwing errors does not cause Unhandled exceptions', function(done) {
+  test('8.7.2 Throwing errors does not cause Unhandled exceptions', function (done) {
     function prom() {
-      return new Promise(function(resolve) {
+      return new Promise(function (resolve) {
         setTimeout(resolve, 1000);
       });
     }
@@ -418,8 +418,8 @@ suite('8.7 Unhandled errors', function() {
     midd.make(
       obj,
       'create',
-      async function() {
-        return prom().then(function() {
+      async function () {
+        return prom().then(function () {
           throw new Error('Boo');
         });
       },
@@ -428,19 +428,19 @@ suite('8.7 Unhandled errors', function() {
 
     obj
       .create()
-      .catch(function(err) {
+      .catch(function (err) {
         assert.equal(err.message, 'Boo');
         assert.instanceOf(err, Error);
       })
       .then(done, done);
   });
-  test('8.7.3 Rejecting promise does not cause Unhandled exceptions', function(done) {
+  test('8.7.3 Rejecting promise does not cause Unhandled exceptions', function (done) {
     midd.make(
       obj,
       'create',
-      function() {
-        return new Promise(function(resolve, reject) {
-          setTimeout(function() {
+      function () {
+        return new Promise(function (resolve, reject) {
+          setTimeout(function () {
             reject(new Error('lol'));
           });
         });
@@ -450,7 +450,7 @@ suite('8.7 Unhandled errors', function() {
 
     obj
       .create()
-      .catch(function(err) {
+      .catch(function (err) {
         assert.equal(err.message, 'lol');
       })
       .then(done, done);
@@ -459,82 +459,82 @@ suite('8.7 Unhandled errors', function() {
 
 suite(
   '8.8 Resolving Value can be altered by After & Last middleware',
-  function() {
+  function () {
     let obj;
-    setup(function() {
+    setup(function () {
       obj = Object.create(null);
     });
-    test('8.8.1 After middleware can alter outcome ASYNC', function(done) {
+    test('8.8.1 After middleware can alter outcome ASYNC', function (done) {
       midd.make(
         obj,
         'create',
-        function() {
+        function () {
           return 'abc';
         },
         { beforeAfter: true, async: true },
       );
 
-      obj.create.after(async function() {
+      obj.create.after(async function () {
         return 'def';
       });
-      obj.create.after(function(resolveValue) {
+      obj.create.after(function (resolveValue) {
         assert.equal(resolveValue, 'def');
       });
 
       obj.create().then(done.bind(null, null), done);
     });
-    test('8.8.2 After middleware can alter outcome SYNC', function(done) {
+    test('8.8.2 After middleware can alter outcome SYNC', function (done) {
       midd.make(
         obj,
         'create',
-        function() {
+        function () {
           return 'abc';
         },
         { beforeAfter: true, async: true },
       );
 
-      obj.create.after(function() {
+      obj.create.after(function () {
         return 'def';
       });
-      obj.create.after(function(resolveValue) {
+      obj.create.after(function (resolveValue) {
         assert.equal(resolveValue, 'def');
       });
 
       obj.create().then(done.bind(null, null), done);
     });
-    test('8.8.3 Last middleware can alter outcome ASYNC', function(done) {
+    test('8.8.3 Last middleware can alter outcome ASYNC', function (done) {
       midd.make(
         obj,
         'create',
-        function() {
+        function () {
           return 'abc';
         },
         { beforeAfter: true, async: true },
       );
 
-      obj.create.last(function() {
+      obj.create.last(function () {
         return Promise.resolve('def');
       });
-      obj.create.last(function(resolveValue) {
+      obj.create.last(function (resolveValue) {
         assert.equal(resolveValue, 'def');
       });
 
       obj.create().then(done.bind(null, null), done);
     });
-    test('8.8.4 Last middleware can alter outcome SYNC', function(done) {
+    test('8.8.4 Last middleware can alter outcome SYNC', function (done) {
       midd.make(
         obj,
         'create',
-        function() {
+        function () {
           return 'abc';
         },
         { beforeAfter: true, async: true },
       );
 
-      obj.create.last(function() {
+      obj.create.last(function () {
         return 'def';
       });
-      obj.create.last(function(resolveValue) {
+      obj.create.last(function (resolveValue) {
         assert.equal(resolveValue, 'def');
       });
 
