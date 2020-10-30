@@ -4,18 +4,18 @@
 const sinon = require('sinon');
 const { assert } = require('chai');
 
-const midd = require('../');
+const midd = require('..');
 
-suite('6. Before / After / Last Synchronous middleware', function() {
-  setup(function() {});
+suite('6. Before / After / Last Synchronous middleware', function () {
+  setup(function () {});
 
-  teardown(function() {});
+  teardown(function () {});
 
   // The numbering (e.g. 1.1.1) has nothing to do with order
   // The purpose is to provide a unique string so specific tests are
   // run by using the mocha --grep "1.1.1" option.
 
-  test('6.1 Types Test', function() {
+  test('6.1 Types Test', function () {
     const obj = Object.create(null);
     midd.make(obj, 'create', {
       beforeAfter: true,
@@ -38,7 +38,7 @@ suite('6. Before / After / Last Synchronous middleware', function() {
   });
 });
 
-suite('6.2. middleware before/after Sequence of invocation', function() {
+suite('6.2. middleware before/after Sequence of invocation', function () {
   let obj;
   let midd1;
   let midd2;
@@ -49,7 +49,7 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
   let middFinal;
   let fnPayload;
 
-  setup(function() {
+  setup(function () {
     obj = Object.create(null);
     midd1 = sinon.spy();
     midd2 = sinon.spy();
@@ -62,7 +62,7 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
     midd.make(obj, 'create', fnPayload, { beforeAfter: true });
   });
 
-  teardown(function() {
+  teardown(function () {
     obj.create();
     assert.ok(
       midd1.calledOnce,
@@ -112,12 +112,12 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
     );
   });
 
-  test('6.2.1 Multiple arguments', function() {
+  test('6.2.1 Multiple arguments', function () {
     obj.create.before(midd1, midd2, midd3);
     obj.create.last(middFinal);
     obj.create.after(midd4, midd5, midd6);
   });
-  test('6.2.2 Multiple calls', function() {
+  test('6.2.2 Multiple calls', function () {
     obj.create.last(middFinal);
     obj.create.before(midd1);
     obj.create.before(midd2);
@@ -126,19 +126,19 @@ suite('6.2. middleware before/after Sequence of invocation', function() {
     obj.create.after(midd5);
     obj.create.after(midd6);
   });
-  test('6.2.3 An array', function() {
+  test('6.2.3 An array', function () {
     obj.create.before([midd1, midd2, midd3]);
     obj.create.last([middFinal]);
     obj.create.after([midd4, midd5, midd6]);
   });
-  test('6.2.4 Array mixed with arg', function() {
+  test('6.2.4 Array mixed with arg', function () {
     obj.create.before([midd1, midd2], midd3);
     obj.create.last(middFinal);
     obj.create.after([midd4, midd5], midd6);
   });
 });
 
-suite('6.3. middleware() argument piping', function() {
+suite('6.3. middleware() argument piping', function () {
   let obj;
   let mainMidd;
   let firstMidd;
@@ -146,7 +146,7 @@ suite('6.3. middleware() argument piping', function() {
   let thirdMidd;
   let lastMidd;
 
-  test('6.3.1 Three arguments', function() {
+  test('6.3.1 Three arguments', function () {
     obj = Object.create(null);
     mainMidd = sinon.spy();
     firstMidd = sinon.spy();
@@ -182,10 +182,10 @@ suite('6.3. middleware() argument piping', function() {
       'lastMidd should be invoked with these arguments',
     );
   });
-  suite('6.3.2 Main Callback return value is what is returned', function() {
+  suite('6.3.2 Main Callback return value is what is returned', function () {
     function setupMiddleware(returnValue) {
       obj = Object.create(null);
-      mainMidd = function() {
+      mainMidd = function () {
         return returnValue;
       };
       firstMidd = sinon.spy();
@@ -195,12 +195,12 @@ suite('6.3. middleware() argument piping', function() {
       obj.create.before(firstMidd, secondMidd);
       obj.create.after(thirdMidd);
     }
-    test('6.3.2.2 Using a string', function() {
+    test('6.3.2.2 Using a string', function () {
       setupMiddleware('value');
       const val = obj.create();
       assert.equal(val, 'value');
     });
-    test('6.3.2.3 Using a number', function() {
+    test('6.3.2.3 Using a number', function () {
       setupMiddleware(9);
       const val = obj.create();
       assert.equal(val, 9);
@@ -208,33 +208,33 @@ suite('6.3. middleware() argument piping', function() {
   });
 });
 
-suite('6.5. Failing middleware cases', function() {
+suite('6.5. Failing middleware cases', function () {
   let obj;
-  setup(function() {
+  setup(function () {
     obj = Object.create(null);
     midd.make(obj, 'create', { beforeAfter: true });
   });
-  test('6.5.1.1 Before middleware throws an error', function() {
-    obj.create.before(function() {
+  test('6.5.1.1 Before middleware throws an error', function () {
+    obj.create.before(function () {
       throw new Error('an error');
     });
 
     assert.throws(obj.create, 'an error');
   });
 
-  test('6.5.1.1.2 After middleware throws an error', function() {
-    obj.create.after(function() {
+  test('6.5.1.1.2 After middleware throws an error', function () {
+    obj.create.after(function () {
       throw new Error('an error');
     });
     assert.throws(obj.create, 'an error');
   });
 
-  test('6.5.1.2 Main callback throws an error', function() {
+  test('6.5.1.2 Main callback throws an error', function () {
     const custObj = Object.create(null);
     midd.make(
       custObj,
       'create',
-      function() {
+      function () {
         throw new Error('an error');
       },
       { beforeAfter: true },
@@ -243,22 +243,22 @@ suite('6.5. Failing middleware cases', function() {
     assert.throws(custObj.create, 'an error');
   });
 });
-suite('6.6. Return Value propagation to After middl', function() {
+suite('6.6. Return Value propagation to After middl', function () {
   let obj;
-  setup(function() {
+  setup(function () {
     obj = Object.create(null);
   });
-  test('6.6.1 Returning value from main callback gets passed as an extra argument to the after middleware', function() {
+  test('6.6.1 Returning value from main callback gets passed as an extra argument to the after middleware', function () {
     midd.make(
       obj,
       'create',
-      function() {
+      function () {
         return 'abc';
       },
       { beforeAfter: true },
     );
 
-    obj.create.after(function(arg1, arg2, resolveValue) {
+    obj.create.after(function (arg1, arg2, resolveValue) {
       assert.equal(resolveValue, 'abc');
     });
     const returnVal = obj.create(1, 2);
@@ -268,45 +268,45 @@ suite('6.6. Return Value propagation to After middl', function() {
 
 suite(
   '6.8 Returning Value can be altered by After & Last middleware',
-  function() {
+  function () {
     let obj;
-    setup(function() {
+    setup(function () {
       obj = Object.create(null);
     });
-    test('6.8.1 After middleware can alter outcome ASYNC', function() {
+    test('6.8.1 After middleware can alter outcome ASYNC', function () {
       midd.make(
         obj,
         'create',
-        function() {
+        function () {
           return 'abc';
         },
         { beforeAfter: true },
       );
 
-      obj.create.after(function() {
+      obj.create.after(function () {
         return 'def';
       });
-      obj.create.after(function(returnValue) {
+      obj.create.after(function (returnValue) {
         assert.equal(returnValue, 'def');
       });
 
       const result = obj.create();
       assert.equal(result, 'def');
     });
-    test('6.8.3 Last middleware can alter final return value', function() {
+    test('6.8.3 Last middleware can alter final return value', function () {
       midd.make(
         obj,
         'create',
-        function() {
+        function () {
           return 'abc';
         },
         { beforeAfter: true },
       );
 
-      obj.create.last(function() {
+      obj.create.last(function () {
         return 'def';
       });
-      obj.create.last(function(resolveValue) {
+      obj.create.last(function (resolveValue) {
         assert.equal(resolveValue, 'def');
       });
 
