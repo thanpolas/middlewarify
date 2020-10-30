@@ -329,6 +329,9 @@ crud.create().then(function(result) {
 
 ## Release History
 
+-   **v2.1.1**, _30 Oct 2020_
+    -   Bumped so tagged version has appropriate changelog (last release minor
+        bump mistake).
 -   **v2.1.0**, _30 Oct 2020_
     -   Updated all dependencies to latest (minor bump was a mistake, should 
             be patch ¯\_(ツ)_/¯).
