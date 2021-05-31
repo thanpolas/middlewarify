@@ -329,6 +329,8 @@ crud.create().then(function(result) {
 
 ## Release History
 
+-   **v2.1.2**, _31 May 2022_
+    -   Updated all dependencies to latest.
 -   **v2.1.1**, _30 Oct 2020_
     -   Bumped so tagged version has appropriate changelog (last release minor
         bump mistake).
