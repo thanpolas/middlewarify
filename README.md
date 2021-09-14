@@ -117,6 +117,9 @@ examples and what are the available options.
 -   `catchAll` type **Function**, default: `null` If defined all errors will
     be piped to this callback, useful when Middleware is used as an
     Express middleware.
+-   `concurrent` type **Boolean**, default: `false` Enables concurrent invocation
+    of all middleware. Requires the `async` option to be true and cannot be used
+    with `beforeAfter` option.
 
 ## The use(fn) Hook.
 
@@ -327,9 +330,15 @@ crud.create().then(function (result) {
 });
 ```
 
+## Using Concurrent Execution
+
+Concurrent execution will use the [Promise.allSettled()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled) function and return its raw results. So expect an array of result objects containing the `status` and either `value` on success or `reason` on failure.
+
 ## Release History
 
--   **v2.1.2**, _31 May 2022_
+-   **v2.2.0**, _14 Sep 2021_
+    -   Introduced "concurrent" option.
+-   **v2.1.2**, _31 May 2021_
     -   Updated all dependencies to latest.
 -   **v2.1.1**, _30 Oct 2020_
     -   Bumped so tagged version has appropriate changelog (last release minor
