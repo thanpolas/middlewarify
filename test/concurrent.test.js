@@ -5,7 +5,7 @@ const { assert } = require('chai');
 
 const midd = require('..');
 
-suite('concurrent execution', function () {
+suite.only('concurrent execution', function () {
   test('Should run all concurrently', async function () {
     function assertExecution() {}
     const obj = {};
@@ -13,7 +13,7 @@ suite('concurrent execution', function () {
 
     function wait(ms) {
       return new Promise((resolve) => {
-        setTimeout(ms, resolve);
+        setTimeout(resolve, ms);
       });
     }
 
@@ -24,14 +24,14 @@ suite('concurrent execution', function () {
 
     const beforeRunDt = new Date();
 
+    await obj.run();
+
     const nowDt = new Date();
 
     const dtDiff = nowDt - beforeRunDt;
 
     assert.isAbove(dtDiff, 100, 'Exec time should be above 100ms');
     assert.isBelow(dtDiff, 150, 'Exec time should not be higher than 150ms');
-
-    await obj.run();
   });
   test('All concurrent middleware should receive same arguments', async function () {
     function assertExecution() {}
@@ -42,7 +42,7 @@ suite('concurrent execution', function () {
       assert.equal(arg1, 1, 'First argument should be value: 1');
       assert.equal(arg2, 2, 'Second argument should be value: 2');
       return new Promise((resolve) => {
-        setTimeout(ms, resolve);
+        setTimeout(resolve, ms);
       });
     }
 
@@ -53,14 +53,14 @@ suite('concurrent execution', function () {
 
     const beforeRunDt = new Date();
 
+    await obj.run(1, 2);
+
     const nowDt = new Date();
 
     const dtDiff = nowDt - beforeRunDt;
 
     assert.isAbove(dtDiff, 100, 'Exec time should be above 100ms');
     assert.isBelow(dtDiff, 150, 'Exec time should not be higher than 150ms');
-
-    await obj.run(1, 2);
   });
 
   test('One failed concurrent middleware will not stop others from executing', async function () {
@@ -73,7 +73,7 @@ suite('concurrent execution', function () {
       assert.equal(midd2.status, 'fulfilled');
       assert.equal(midd2.value, 2);
       assert.equal(midd3.status, 'fulfilled');
-      assert.equal(midd3.status, 3);
+      assert.equal(midd3.value, 3);
       assert.equal(midd4.status, 'rejected');
       assert.equal(midd4.reason, 'Error: not gonna happen');
     }
@@ -87,29 +87,29 @@ suite('concurrent execution', function () {
 
     obj.run.use(async () => {
       return new Promise((resolve) => {
-        setTimeout(100, () => {
+        setTimeout(() => {
           finished1 = true;
           resolve(1);
-        });
+        }, 100);
       });
     });
 
     obj.run.use(async () => {
       return new Promise((resolve) => {
-        setTimeout(100, () => {
+        setTimeout(() => {
           finished2 = true;
           resolve(2);
         });
-      });
+      }, 100);
     });
 
     obj.run.use(async () => {
       return new Promise((resolve) => {
-        setTimeout(100, () => {
+        setTimeout(() => {
           finished3 = true;
           resolve(3);
         });
-      });
+      }, 100);
     });
 
     obj.run.use(async () => {
@@ -117,6 +117,8 @@ suite('concurrent execution', function () {
     });
 
     const beforeRunDt = new Date();
+
+    await obj.run();
 
     const nowDt = new Date();
 
@@ -127,8 +129,6 @@ suite('concurrent execution', function () {
     assert.isTrue(finished1);
     assert.isTrue(finished2);
     assert.isTrue(finished3);
-
-    await obj.run();
   });
 
   test('mainCallback and return value will one and the same', async function () {
@@ -141,7 +141,7 @@ suite('concurrent execution', function () {
       assert.equal(midd2.status, 'fulfilled');
       assert.equal(midd2.value, 2);
       assert.equal(midd3.status, 'fulfilled');
-      assert.equal(midd3.status, 3);
+      assert.equal(midd3.value, 3);
     }
 
     const obj = {};
@@ -149,29 +149,31 @@ suite('concurrent execution', function () {
 
     obj.run.use(async () => {
       return new Promise((resolve) => {
-        setTimeout(100, () => {
+        setTimeout(() => {
           resolve(1);
-        });
+        }, 100);
       });
     });
 
     obj.run.use(async () => {
       return new Promise((resolve) => {
-        setTimeout(100, () => {
+        setTimeout(() => {
           resolve(2);
-        });
+        }, 100);
       });
     });
 
     obj.run.use(async () => {
       return new Promise((resolve) => {
-        setTimeout(100, () => {
+        setTimeout(() => {
           resolve(3);
-        });
+        }, 100);
       });
     });
 
     const beforeRunDt = new Date();
+
+    const res = await obj.run();
 
     const nowDt = new Date();
 
@@ -180,7 +182,6 @@ suite('concurrent execution', function () {
     assert.isAbove(dtDiff, 100, 'Exec time should be above 100ms');
     assert.isBelow(dtDiff, 150, 'Exec time should not be higher than 150ms');
 
-    const res = await obj.run();
     assertExecution(res);
   });
 
