@@ -169,8 +169,8 @@ entity._asyncShiftAndInvoke = async function (
  * @private
  */
 entity._invokeConcurrent = async (middObj, args) => {
-  const execAllMidds = middObj.midds.map((midd) => midd.bind(null, ...args));
-  const res = Promise.allSettled(execAllMidds);
+  const allMiddsPromises = middObj.midds.map((midd) => midd(...args));
+  const res = Promise.allSettled(allMiddsPromises);
 
   return res;
 };
