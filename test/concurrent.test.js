@@ -130,4 +130,79 @@ suite('concurrent execution', function () {
 
     await obj.run();
   });
+
+  test('mainCallback and return value will one and the same', async function () {
+    function assertExecution(res) {
+      assert.isArray(res);
+      assert.lengthOf(res, 3);
+      const [midd1, midd2, midd3] = res;
+      assert.equal(midd1.status, 'fulfilled');
+      assert.equal(midd1.value, 1);
+      assert.equal(midd2.status, 'fulfilled');
+      assert.equal(midd2.value, 2);
+      assert.equal(midd3.status, 'fulfilled');
+      assert.equal(midd3.status, 3);
+    }
+
+    const obj = {};
+    midd.make(obj, 'run', assertExecution, { concurrent: true, async: true });
+
+    obj.run.use(async () => {
+      return new Promise((resolve) => {
+        setTimeout(100, () => {
+          resolve(1);
+        });
+      });
+    });
+
+    obj.run.use(async () => {
+      return new Promise((resolve) => {
+        setTimeout(100, () => {
+          resolve(2);
+        });
+      });
+    });
+
+    obj.run.use(async () => {
+      return new Promise((resolve) => {
+        setTimeout(100, () => {
+          resolve(3);
+        });
+      });
+    });
+
+    const beforeRunDt = new Date();
+
+    const nowDt = new Date();
+
+    const dtDiff = nowDt - beforeRunDt;
+
+    assert.isAbove(dtDiff, 100, 'Exec time should be above 100ms');
+    assert.isBelow(dtDiff, 150, 'Exec time should not be higher than 150ms');
+
+    const res = await obj.run();
+    assertExecution(res);
+  });
+
+  test('Should not accept concurrent option without async', async function () {
+    function assertExecution() {}
+    const obj = {};
+
+    assert.throws(() => {
+      midd.make(obj, 'run', assertExecution, { concurrent: true });
+    });
+  });
+
+  test('Should not accept concurrent option with beforeAfter', async function () {
+    function assertExecution() {}
+    const obj = {};
+
+    assert.throws(() => {
+      midd.make(obj, 'run', assertExecution, {
+        concurrent: true,
+        async: true,
+        beforeAfter: true,
+      });
+    });
+  });
 });
