@@ -1,5 +1,8 @@
 root: true
 
+parserOptions:
+  ecmaVersion: 2020
+
 extends:
   - airbnb-base
   - plugin:jsdoc/recommended
@@ -36,7 +39,9 @@ settings:
   jsdoc:
     preferredTypes:
       object: Object
-
+      express: Express
+      Function: function
+      knex: Knex
     tagNamePreference:
       constant: const
       file: fileoverview
