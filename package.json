@@ -1,51 +1,52 @@
 {
-  "name": "middlewarify",
-  "description": "Apply the middleware pattern to any function.",
-  "version": "2.1.2",
-  "homepage": "https://github.com/thanpolas/middlewarify",
-  "author": {
-    "name": "Thanasis Polychronakis",
-    "url": "http://thanpol.as"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/thanpolas/middlewarify.git"
-  },
-  "bugs": {
-    "url": "https://github.com/thanpolas/middlewarify/issues"
-  },
-  "license": "MIT",
-  "engines": {
-    "node": ">= 10"
-  },
-  "scripts": {
-    "test": "npm run eslint; mocha -u tdd -R spec test/",
-    "eslint": "eslint middlewarify.js test",
-    "release": "release-it --ci",
-    "release:minor": "release-it minor --ci",
-    "release:major": "release-it major --ci"
-  },
-  "dependencies": {
-    "lodash": "~4.17.21",
-    "async": "~3.2.0"
-  },
-  "devDependencies": {
-    "chai": "~4.3.4",
-    "eslint": "~7.27.0",
-    "eslint-config-airbnb-base": "~14.2.1",
-    "eslint-config-prettier": "~8.3.0",
-    "eslint-plugin-import": "~2.23.4",
-    "eslint-plugin-jest": "~24.3.6",
-    "eslint-plugin-jsdoc": "~35.1.1",
-    "eslint-plugin-prettier": "~3.4.0",
-    "eslint-plugin-security": "~1.4.0",
-    "mocha": "~8.4.0",
-    "prettier": "~2.3.0",
-    "release-it": "^14.7.0",
-    "sinon": "~11.1.1"
-  },
-  "keywords": [
-    "middleware",
-    "middleware pattern"
-  ]
+    "name": "middlewarify",
+    "description": "Apply the middleware pattern to any function.",
+    "version": "2.1.2",
+    "main": "./src/middlewarify",
+    "homepage": "https://github.com/thanpolas/middlewarify",
+    "author": {
+        "name": "Thanasis Polychronakis",
+        "url": "http://thanpol.as"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/thanpolas/middlewarify.git"
+    },
+    "bugs": {
+        "url": "https://github.com/thanpolas/middlewarify/issues"
+    },
+    "license": "ISC",
+    "engines": {
+        "node": ">= 10"
+    },
+    "scripts": {
+        "test": "npm run eslint; mocha -u tdd -R spec test/",
+        "eslint": "eslint middlewarify.js test",
+        "release": "release-it --ci",
+        "release:minor": "release-it minor --ci",
+        "release:major": "release-it major --ci"
+    },
+    "dependencies": {
+        "lodash": "~4.17.21",
+        "async": "~3.2.1"
+    },
+    "devDependencies": {
+        "chai": "~4.3.4",
+        "eslint": "~7.32.0",
+        "eslint-config-airbnb-base": "~14.2.1",
+        "eslint-config-prettier": "~8.3.0",
+        "eslint-plugin-import": "~2.24.2",
+        "eslint-plugin-jest": "~24.4.0",
+        "eslint-plugin-jsdoc": "~36.1.0",
+        "eslint-plugin-prettier": "~4.0.0",
+        "eslint-plugin-security": "~1.4.0",
+        "mocha": "~9.1.1",
+        "prettier": "~2.4.0",
+        "release-it": "^14.11.5",
+        "sinon": "~11.1.2"
+    },
+    "keywords": [
+        "middleware",
+        "middleware pattern"
+    ]
 }

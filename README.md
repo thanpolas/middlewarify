@@ -47,13 +47,13 @@ const tasks = require('./tasks');
 
 // add middleware to the 'create' operation
 
-tasks.create.use(function(data) {
+tasks.create.use(function (data) {
     console.log('middleware 1');
     data.newAttr = 2;
 });
 
 // Add a second middleware to the 'create' operation
-tasks.create.use(function(data) {
+tasks.create.use(function (data) {
     console.log('middleware 2. Title:', data.title);
     data.secondAttr = 3;
 });
@@ -117,6 +117,9 @@ examples and what are the available options.
 -   `catchAll` type **Function**, default: `null` If defined all errors will
     be piped to this callback, useful when Middleware is used as an
     Express middleware.
+-   `concurrent` type **Boolean**, default: `false` Enables concurrent invocation
+    of all middleware. Requires the `async` option to be true and cannot be used
+    with `beforeAfter` option.
 
 ## The use(fn) Hook.
 
@@ -154,11 +157,11 @@ All middleware get invoked with the arguments that the _Middleware Container_
 was invoked with. The same number or arguments, the exact same references:
 
 ```js
-app.connect.use(function(req) {
+app.connect.use(function (req) {
     req.a === 1; // true
     req.a++;
 });
-app.connect.use(function(req) {
+app.connect.use(function (req) {
     req.a === 2; // true
 });
 
@@ -200,7 +203,7 @@ crud.create({ a: 1, b: 2 }, 'bar');
 Arguments of all middleware will get:
 
 ```js
-crud.create.use(function(arg1, arg2) {
+crud.create.use(function (arg1, arg2) {
     arg1 === { a: 1, b: 2 }; // true
 
     arg2 === 'bar'; // true
@@ -261,17 +264,17 @@ middlewarify.make(tasks, 'create', createTask, { beforeAfter: true });
 /** ... */
 
 // add a before hook
-tasks.create.before(function() {
+tasks.create.before(function () {
     console.log('Invoked First');
 });
 
 // add an after hook
-tasks.create.after(function() {
+tasks.create.after(function () {
     console.log('Invoked Third');
 });
 
 // add an always LAST hook, will always invoke last
-task.create.last(function() {
+task.create.last(function () {
     console.log('Will always invoke last');
 });
 
@@ -279,11 +282,11 @@ task.create.last(function() {
 
 // invoke all middleware
 tasks.create().then(
-    function(val) {
+    function (val) {
         // at this point all middleware have finished.
         console.log(val); // 999
     },
-    function(err) {
+    function (err) {
         // handle error
     },
 );
@@ -296,11 +299,11 @@ hooks will receive an extra argument representing the returned value of
 the main callback:
 
 ```js
-middlewarify.make(crud, 'create', function(arg1, arg2) {
+middlewarify.make(crud, 'create', function (arg1, arg2) {
     return 'abc';
 });
 
-crud.create.after(function(arg1, arg2, val) {
+crud.create.after(function (arg1, arg2, val) {
     console.log(val); // prints 'abc'
 });
 
@@ -313,30 +316,36 @@ All After & Last hooks may alter the return result as long as they return any
 type of value except `undefined`:
 
 ```js
-middlewarify.make(crud, 'create', function() {
+middlewarify.make(crud, 'create', function () {
     return 'abc';
 });
 
-crud.create.after(function(result) {
+crud.create.after(function (result) {
     // return an altered outcome
     return 'def';
 });
 
-crud.create().then(function(result) {
+crud.create().then(function (result) {
     console.log(result); // prints "def"
 });
 ```
 
+## Using Concurrent Execution
+
+Concurrent execution will use the [Promise.allSettled()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled) function and return its raw results. So expect an array of result objects containing the `status` and either `value` on success or `reason` on failure.
+
 ## Release History
 
--   **v2.1.2**, _31 May 2022_
+-   **v2.2.0**, _14 Sep 2021_
+    -   Introduced "concurrent" option.
+-   **v2.1.2**, _31 May 2021_
     -   Updated all dependencies to latest.
 -   **v2.1.1**, _30 Oct 2020_
     -   Bumped so tagged version has appropriate changelog (last release minor
         bump mistake).
 -   **v2.1.0**, _30 Oct 2020_
-    -   Updated all dependencies to latest (minor bump was a mistake, should 
-            be patch ¯\_(ツ)_/¯).
+    -   Updated all dependencies to latest (minor bump was a mistake, should
+        be patch ¯\_(ツ)\_/¯).
 -   **v2.0.0**, _09 Mar 2020_ **Breaking Changes**
     -   Middlewarify will now execute all middleware synchronously by default.
     -   Introduced new option `async` to enable the asynchronous invocation.
@@ -380,7 +389,7 @@ crud.create().then(function(result) {
 
 ## License
 
-Copyright Thanasis Polychronakis, licensed under the [MIT License](LICENSE-MIT).
+Copyright Thanos Polychronakis, licensed under the [ISC License](LICENSE).
 
 [grunt]: http://gruntjs.com/
 [getting started]: https://github.com/gruntjs/grunt/wiki/Getting-started
