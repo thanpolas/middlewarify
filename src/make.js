@@ -26,6 +26,7 @@ const noopMidd = function (cb) {
  *     instead of the single use hook.
  * @param {Function=} optParams.catchAll Error catchall function.
  * @param {boolean=} optParams.async Set to true to enable async mode.
+ * @param {boolean=} optParams.concurrent Do concurrent execution of middleware.
  */
 entity.make = function (obj, prop, optFinalCb, optParams) {
   const middObj = entity.newMidd();
@@ -52,8 +53,19 @@ entity.make = function (obj, prop, optFinalCb, optParams) {
     beforeAfter: false,
     catchAll: null,
     async: false,
+    concurrent: false,
   };
   middObj.params = __.extend(defaultParams, params);
+
+  // Check for concurrent without async
+  if (middObj.params.concurrent && !middObj.params.async) {
+    throw new Error('Concurrent mode can only exist with "async" activated');
+  }
+
+  // Check for concurrent and beforeAfter
+  if (middObj.params.concurrent && middObj.params.beforeAfter) {
+    throw new Error('Concurrent mode cannot exist with beforeAfter option');
+  }
 
   obj[prop] = invokeMiddleware.bind(null, middObj);
 

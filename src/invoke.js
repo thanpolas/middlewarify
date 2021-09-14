@@ -12,6 +12,10 @@ const entity = (module.exports = {});
  * @return {*|Promise} Middleware value or A promise.
  */
 entity.invokeMiddleware = (middObj, ...args) => {
+  if (middObj.params.concurrent) {
+    return entity._invokeConcurrent(middObj, args);
+  }
+
   const midds = entity._prepareMiddleware(middObj);
 
   const invokeState = {
@@ -153,4 +157,20 @@ entity._asyncShiftAndInvoke = async function (
   }
 
   return entity._asyncShiftAndInvoke(midds, args, invokeState, isAfter);
+};
+
+/**
+ * Will execute all middleware concurrently.
+ *
+ * @param  {Object} middObj Internal midd object.
+ * @param  {Array<*>} args Any number of arguments
+ * @return {Promise<Array<Object>>} A Promise with the returned statuses and
+ *    values.
+ * @private
+ */
+entity._invokeConcurrent = async (middObj, args) => {
+  const execAllMidds = middObj.midds.map((midd) => midd.bind(null, ...args));
+  const res = Promise.allSettled(execAllMidds);
+
+  return res;
 };
